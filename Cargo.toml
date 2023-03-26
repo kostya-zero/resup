@@ -1,0 +1,10 @@
+[package]
+name = "resup"
+description = "A CLI front-end for Real-ESRGAN ncnn Vulkan image upscaler written in Rust."
+authors = ["Konstantin Zhigaylo"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.1.13"
+image = "0.24.6"
