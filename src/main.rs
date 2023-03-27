@@ -52,17 +52,17 @@ fn main() {
             let model: String = sub.get_one::<String>("model").expect("Error").to_string();
 
             if !(model == "photo" || model == "anime") {
-                println!("Unknown model name specified. Model name can be `photo` or `anime`.");
+                Term::fatal("Unknown mode name specified. Mode name can be `photo` or `anime`.");
                 exit(1);
             }
 
             if !Path::new(&input).exists() {
-                println!("Input file not found.");
+                Term::fatal("Input file not found!");
                 exit(1);
             }
 
             if Path::new(&output).exists() {
-                println!("Output file with same name already exists.");
+                Term::fatal("Output file with same name alerady exists.");
                 exit(1);
             }
 
@@ -77,12 +77,12 @@ fn main() {
             Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
             let result = Proc::upscale(input, output, model);
             if !result {
-                println!("Upscale failed!");
+                Term::fatal("Upscale failed!");
                 exit(1);
             }
 
             Term::info("Your image are ready!");
         },
-        _ => println!("Unknown command!")
+        _ => Term::fatal("Unknown command!")
     }
 }
