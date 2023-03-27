@@ -2,10 +2,11 @@ use std::{path::Path, process::exit};
 use clap::{Command, Arg};
 use img::{ImageInformation, Img};
 
-use crate::proc::Proc;
+use crate::{proc::Proc, term::Term};
 
 mod img;
 mod proc;
+mod term;
 
 fn app() -> Command {
     Command::new("resup")
@@ -65,7 +66,7 @@ fn main() {
                 exit(1);
             }
 
-            println!("Gethering image information, it might take a little bit...");
+            Term::info("Gethering image information, it might take a little bit...");
             
             let image_info: ImageInformation = Img::get_image_meta(input.clone());
             println!("Initial size of image: {}x{}", image_info.width.to_owned(), image_info.height.to_string());
@@ -73,14 +74,14 @@ fn main() {
             let multi_height = image_info.height * 4;
             println!("Final image resolution: {}x{}", multi_width.to_string(), multi_height.to_owned());
 
-            println!("Calling real-esrgan with arguments...");
+            Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
             let result = Proc::upscale(input, output, model);
             if !result {
                 println!("Upscale failed!");
                 exit(1);
             }
 
-            println!("Your image are ready!");
+            Term::info("Your image are ready!");
         },
         _ => println!("Unknown command!")
     }
