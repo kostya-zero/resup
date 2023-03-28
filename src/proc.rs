@@ -2,7 +2,7 @@ use std::process::{Command, Stdio};
 
 pub struct Proc;
 impl Proc {
-    pub fn upscale(input: String, output: String, model: String) -> bool {
+    pub fn upscale(input: String, output: String, model: String, executable: String) -> bool {
         let model_name = match model.as_str() {
             "anime" => "realesrgan-x4plus-anime",
             "photo" => "realesrgan-x4plus",
@@ -10,7 +10,7 @@ impl Proc {
 
         };
 
-        let status = Command::new("realesrgan-ncnn-vulkan")
+        let status = Command::new(executable)
             //.args([format!("-i {} -o {} -s {} -m {}", input, output, scale.to_string(), model_name)])
             .args(["-i", input.as_str(), "-o", output.as_str(), "-s", "4", "-n", model_name])
             .stdout(Stdio::inherit())

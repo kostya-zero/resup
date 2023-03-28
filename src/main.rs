@@ -1,4 +1,4 @@
-use std::{path::Path, process::exit};
+use std::{path::Path, process::exit, env};
 use clap::{Command, Arg};
 use img::{ImageInformation, Img};
 
@@ -38,7 +38,16 @@ fn app() -> Command {
                                .long("model")
                                .help("Model to use (photo or anime).")
                                .required(true)
-                               .value_parser(clap::value_parser!(String))
+                               .value_parser(clap::value_parser!(String)),
+
+                           Arg::new("executable")
+                              .short('e')
+                              .long("executable")
+                              .help("Set path to executable.")
+                              .required(false)
+                              .default_value("")
+                              .value_parser(clap::value_parser!(String))
+
                      ])
         ])
 }
@@ -50,6 +59,17 @@ fn main() {
             let input: String = sub.get_one::<String>("input").expect("Error").to_string();
             let output: String = sub.get_one::<String>("output").expect("Error").to_string();
             let model: String = sub.get_one::<String>("model").expect("Error").to_string();
+            let mut executable: String = sub.get_one::<String>("executable").expect("Error").to_string();
+
+            if executable == "" {
+                if env::consts::OS == "windows" {
+                    executable = "realesrgan-ncnn-vulkan.exe".to_string();
+                }
+                else {
+                    executable = "realesrgan-ncnn-vulkan".to_string();
+                }
+            }
+
 
             if !(model == "photo" || model == "anime") {
                 Term::fatal("Unknown mode name specified. Mode name can be `photo` or `anime`.");
@@ -75,7 +95,7 @@ fn main() {
             println!("Final image resolution: {}x{}", multi_width.to_string(), multi_height.to_owned());
 
             Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
-            let result = Proc::upscale(input, output, model);
+            let result = Proc::upscale(input, output, model, executable);
             if !result {
                 Term::fatal("Upscale failed!");
                 exit(1);
