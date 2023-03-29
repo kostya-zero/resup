@@ -61,6 +61,13 @@ fn main() {
             let model: String = sub.get_one::<String>("model").expect("Error").to_string();
             let mut executable: String = sub.get_one::<String>("executable").expect("Error").to_string();
 
+            if executable != "" {
+                if !Path::new(executable.as_str()).exists() {
+                    Term::fatal("Cannot find given path to executable.");
+                    exit(1);
+                }
+            }
+
             if executable == "" {
                 if env::consts::OS == "windows" {
                     executable = "realesrgan-ncnn-vulkan.exe".to_string();
@@ -69,7 +76,6 @@ fn main() {
                     executable = "realesrgan-ncnn-vulkan".to_string();
                 }
             }
-
 
             if !(model == "photo" || model == "anime") {
                 Term::fatal("Unknown mode name specified. Mode name can be `photo` or `anime`.");
