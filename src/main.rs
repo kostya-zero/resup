@@ -61,14 +61,12 @@ fn main() {
             let model: String = sub.get_one::<String>("model").expect("Error").to_string();
             let mut executable: String = sub.get_one::<String>("executable").expect("Error").to_string();
 
-            if executable != "" {
-                if !Path::new(executable.as_str()).exists() {
-                    Term::fatal("Cannot find given path to executable.");
-                    exit(1);
-                }
+            if !executable.is_empty() && !Path::new(executable.as_str()).exists() {
+                Term::fatal("Cannot find given path to executable.");
+                exit(1);
             }
 
-            if executable == "" {
+            if executable.is_empty() {
                 if env::consts::OS == "windows" {
                     executable = "realesrgan-ncnn-vulkan.exe".to_string();
                 }
@@ -95,10 +93,10 @@ fn main() {
             Term::info("Gethering image information, it might take a little bit...");
             
             let image_info: ImageInformation = Img::get_image_meta(input.clone());
-            println!("Initial size of image: {}x{}", image_info.width.to_owned(), image_info.height.to_string());
+            println!("Initial size of image: {}x{}", image_info.width.to_owned(), image_info.height);
             let multi_width = image_info.width * 4;
             let multi_height = image_info.height * 4;
-            println!("Final image resolution: {}x{}", multi_width.to_string(), multi_height.to_owned());
+            println!("Final image resolution: {}x{}", multi_width, multi_height);
 
             Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
             let result = Proc::upscale(input, output, model, executable);

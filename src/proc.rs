@@ -23,7 +23,7 @@ impl Proc {
             return true;
         }
 
-        return false;
+        false
     }
     
 }
