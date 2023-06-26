@@ -34,4 +34,4 @@ Read more about `RUSTFLAGS` on the [Cargo Book Page](https://doc.rust-lang.org/c
 env RUSTFLAGS="-C target-cpu=native -C opt-level=2" cargo build --release
 ```
 
-> WARNING: Optimization level 3 are not recommended because on some systems it might decrease performance of Resup.
+> Optimization level 3 is not recommended due to that on certain systems it might decrease the performance of Resup.
