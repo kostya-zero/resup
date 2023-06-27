@@ -1,21 +1,33 @@
+use crate::{proc::Proc, term::Term};
 use args::cli;
 use img::{ImageInformation, Img};
 use std::{env, path::Path, process::exit};
-use crate::{proc::Proc, term::Term};
 
+mod args;
 mod img;
 mod proc;
 mod term;
-mod args;
 
 fn main() {
     let args = cli().get_matches();
     match args.subcommand() {
         Some(("upscale", sub)) => {
-            let input: String = sub.get_one::<String>("input").expect("Cannot get argument content.").to_string();
-            let output: String = sub.get_one::<String>("output").expect("Cannot get argument content.").to_string();
-            let model: String = sub.get_one::<String>("model").expect("Cannot get argument content.").to_string();
-            let models: String = sub.get_one::<String>("models").expect("Cannot get argument content.").to_string();
+            let input: String = sub
+                .get_one::<String>("input")
+                .expect("Cannot get argument content.")
+                .to_string();
+            let output: String = sub
+                .get_one::<String>("output")
+                .expect("Cannot get argument content.")
+                .to_string();
+            let model: String = sub
+                .get_one::<String>("model")
+                .expect("Cannot get argument content.")
+                .to_string();
+            let models: String = sub
+                .get_one::<String>("models")
+                .expect("Cannot get argument content.")
+                .to_string();
             let mut executable: String = sub
                 .get_one::<String>("executable")
                 .expect("Error")
@@ -51,10 +63,16 @@ fn main() {
 
             Term::info("Gethering image information, it might take a while...");
             let image_info: ImageInformation = Img::get_image_meta(input.clone());
-            Term::info(&format!("Intitial size of image: {}x{}", image_info.width, image_info.height));
+            Term::info(&format!(
+                "Intitial size of image: {}x{}",
+                image_info.width, image_info.height
+            ));
             let multi_width = image_info.width * 4;
             let multi_height = image_info.height * 4;
-            Term::info(&format!("Final image resolution: {}x{}", multi_width, multi_height));
+            Term::info(&format!(
+                "Final image resolution: {}x{}",
+                multi_width, multi_height
+            ));
 
             Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
             let result = Proc::upscale(input, output, model, executable, models);
