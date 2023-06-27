@@ -1,8 +1,8 @@
 [package]
 name = "resup"
 description = "A CLI front-end for Real-ESRGAN ncnn Vulkan image upscaler written in Rust."
-authors = ["Konstantin Zhigaylo"]
-version = "0.1.0"
+authors = ["Konstantin Zhigaylo <kostyantop8@gmail.com>"]
+version = "0.1.0-dev"
 edition = "2021"
 
 [dependencies]
