@@ -1,6 +1,7 @@
-use crate::{proc::Proc, term::Term};
+use crate::term::Term;
 use args::cli;
 use img::{ImageInformation, Img};
+use proc::upscale;
 use std::{env, path::Path, process::exit};
 
 mod args;
@@ -61,7 +62,7 @@ fn main() {
                 exit(1);
             }
 
-            Term::info("Gethering image information, it might take a while...");
+            Term::work("Gethering image information, it might take a while...");
             let image_info: ImageInformation = Img::get_image_meta(input.clone());
             Term::info(&format!(
                 "Intitial size of image: {}x{}",
@@ -74,8 +75,8 @@ fn main() {
                 multi_width, multi_height
             ));
 
-            Term::info("Calling realesrgan-ncnn-vulkan with arguments...");
-            let result = Proc::upscale(input, output, model, executable, models);
+            Term::work("Calling real-esrgan-ncnn-vulkan with arguments...");
+            let result = upscale(input, output, model, executable, models);
             if !result {
                 Term::fatal("Upscale failed!");
                 exit(1);
