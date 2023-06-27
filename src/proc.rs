@@ -1,29 +1,31 @@
-use std::process::{Command, Stdio};
+use std::{process::{Command, Stdio, exit}, vec};
+
+use crate::term::Term;
 
 pub struct Proc;
 impl Proc {
-    pub fn upscale(input: String, output: String, model: String, executable: String) -> bool {
-        let model_name = match model.as_str() {
-            "anime" => "realesrgan-x4plus-anime",
-            "photo" => "realesrgan-x4plus",
-            _ => panic!("Unknown model type passed!")
-
-        };
-
-        let status = Command::new(executable)
-            //.args([format!("-i {} -o {} -s {} -m {}", input, output, scale.to_string(), model_name)])
-            .args(["-i", input.as_str(), "-o", output.as_str(), "-s", "4", "-n", model_name])
-            .stdout(Stdio::inherit())
-            .stdin(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .output()
-            .expect("Faield to start realesrgan-ncnn-vulkan. Check if binary exists in PATH.");
-
+    pub fn upscale(input: String, output: String, model: String, executable: String, models: String) -> bool {
+        let mut esrgan = Command::new(executable);
+        let mut args: Vec<&str> = vec![];
+        args.append(&mut vec!["-i", &input, "-o", &output, "-s", "4", "-n", &model]);
+        if !models.is_empty() {
+            args.append(&mut vec!["-m", &models]);
+        }
+        esrgan.args(args);
+        esrgan.stdout(Stdio::inherit());
+        esrgan.stdin(Stdio::inherit());
+        esrgan.stderr(Stdio::inherit());
+        let result = esrgan.output();
+        if result.is_err() {
+            Term::fatal("Failed to launch real-esrgan executable. Check if it exists in PATH or by given path.");
+            exit(1);
+        }
+        
+        let status = result.unwrap();
         if status.status.success() {
             return true;
         }
 
         false
     }
-    
 }
