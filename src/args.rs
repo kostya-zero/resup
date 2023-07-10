@@ -18,7 +18,7 @@ pub fn cli() -> Command {
                 .short('o')
                 .long("output")
                 .help("Name of the final output.")
-                .required(true)
+                .default_value("")
                 .value_parser(clap::value_parser!(String)),
             Arg::new("model")
                 .short('m')
