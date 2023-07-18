@@ -17,7 +17,7 @@ fn main() {
                 .get_one::<String>("input")
                 .expect("Cannot get argument content.")
                 .to_string();
-            let output: String = sub
+            let mut output: String = sub
                 .get_one::<String>("output")
                 .expect("Cannot get argument content.")
                 .to_string();
@@ -57,8 +57,12 @@ fn main() {
                 exit(1);
             }
 
+            if output.is_empty() {
+                output = "upscaled-".to_string() + &input;
+            }
+
             if Path::new(&output).exists() {
-                Term::fatal("Output file with same name alerady exists.");
+                Term::fatal("Output file with same name alerady exists: '{}'");
                 exit(1);
             }
 
@@ -68,6 +72,7 @@ fn main() {
                 "Intitial size of image: {}x{}",
                 image_info.width, image_info.height
             ));
+
             let multi_width = image_info.width * 4;
             let multi_height = image_info.height * 4;
             Term::info(&format!(
@@ -75,7 +80,7 @@ fn main() {
                 multi_width, multi_height
             ));
 
-            Term::work("Calling real-esrgan-ncnn-vulkan with arguments...");
+            Term::work("Calling ESRGAN with arguments...");
             let result = upscale(input, output, model, executable, models);
             if !result {
                 Term::fatal("Upscale failed!");

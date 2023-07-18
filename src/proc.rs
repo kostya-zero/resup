@@ -1,5 +1,5 @@
 use std::{
-    process::{exit, Command, Stdio},
+    process::{Command, Stdio},
     vec,
 };
 
@@ -24,18 +24,14 @@ pub fn upscale(
     esrgan.stdout(Stdio::inherit());
     esrgan.stdin(Stdio::inherit());
     esrgan.stderr(Stdio::inherit());
-    let result = esrgan.output();
-    if result.is_err() {
-        Term::fatal(
-            "Failed to launch real-esrgan executable. Check if it exists in PATH or by given path.",
-        );
-        exit(1);
+    match esrgan.output() {
+        Ok(_) => {
+            Term::info("ESRGAN finished his job successfully");
+            return true;
+        },
+        Err(e) => {
+            Term::fatal(&format!("ESRGAN encountered an error: {}", e));
+            return false;
+        }
     }
-
-    let status = result.unwrap();
-    if status.status.success() {
-        return true;
-    }
-
-    false
 }
