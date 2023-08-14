@@ -1,43 +1,18 @@
-use clap::{Arg, Command};
+use clap::{Command, Arg, value_parser};
 
-pub fn cli() -> Command {
+pub fn app() -> Command {
     Command::new("resup")
-        .about("A CLI front-end for Real-ESRGAN ncnn Vulkan image upscaler written in Rust.")
-        .version("0.1.0")
-        .author("Konstantin Zhigaylo")
-        .arg_required_else_help(true)
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .version(env!("CARGO_PKG_VERSION"))
         .subcommand_required(true)
-        .subcommands([Command::new("upscale").about("Upscale image").args([
-            Arg::new("input")
-                .short('i')
-                .long("input")
-                .help("Input file to upscale.")
-                .required(true)
-                .value_parser(clap::value_parser!(String)),
-            Arg::new("output")
-                .short('o')
-                .long("output")
-                .help("Name of the final output.")
-                .default_value("")
-                .value_parser(clap::value_parser!(String)),
-            Arg::new("model")
-                .short('m')
-                .long("model")
-                .help("Which model to use.")
-                .default_value("realesrgan-x4plus")
-                .value_parser(clap::value_parser!(String)),
-            Arg::new("models")
-                .short('M')
-                .long("models")
-                .help("Path to models directory.")
-                .default_value("")
-                .value_parser(clap::value_parser!(String)),
-            Arg::new("executable")
-                .short('e')
-                .long("executable")
-                .help("Set path to executable.")
-                .required(false)
-                .default_value("")
-                .value_parser(clap::value_parser!(String)),
-        ])])
+        .arg_required_else_help(true)
+        .subcommands([
+            Command::new("toolchains").about("View list of available toolchains."),
+            Command::new("install").about("Install a toolchain.")
+            .arg(Arg::new("name")
+                    .help("Name of toolchain")
+                    .num_args(1)
+                    .required(true)
+                    .value_parser(value_parser!(String)))
+        ])
 }

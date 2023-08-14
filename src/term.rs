@@ -1,14 +1,14 @@
 pub struct Term;
 impl Term {
-    pub fn info(msg: &str) {
-        println!("\x1b[1m\x1b[92m \x1b[0m \x1b[1m{}\x1b[0m", msg);
+    pub fn message(msg: &str) {
+        println!("{}", msg);
     }
 
-    pub fn fatal(msg: &str) {
-        println!("\x1b[1m\x1b[91m \x1b[0m \x1b[1m{}\x1b[0m", msg);
+    pub fn error(msg: &str) {
+        println!("ERROR: {}", msg);
     }
 
-    pub fn work(msg: &str) {
-        println!("\x1b[1m\x1b[93m \x1b[0m \x1b[1m{}\x1b[0m", msg);
+    pub fn warn(msg: &str) {
+        println!("WARN: {}", msg);
     }
 }
