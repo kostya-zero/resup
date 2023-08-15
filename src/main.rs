@@ -12,6 +12,9 @@ mod config;
 mod term;
 
 fn main() {
+    if !Manager::exists() {
+        Manager::make_default();
+    } 
     let args = app().get_matches();
     match args.subcommand() {
         Some(("upscale", sub)) => {

@@ -1,4 +1,4 @@
-use home::{env::Env, home_dir};
+use home::home_dir;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
@@ -7,14 +7,12 @@ pub struct UpscaleOptions {
     pub model: String,
     pub models_path: String,
     pub executable: String,
-    pub suffix: String,
 }
 
 impl Default for UpscaleOptions {
     fn default() -> Self {
         Self {
             model: String::from("realesrgan-x4plus"),
-            suffix: String::from("upscaled"),
             models_path: String::from("/usr/share/realesrgan-ncnn-vulkan/models"),
             executable: String::from("/usr/bin/realesrgan-ncnn-vulkan"),
         }
@@ -42,10 +40,6 @@ impl Manager {
         home_dir().expect("Fail").display().to_string() + "/.config/resup"
     }
 
-    pub fn get_toolchains_path() -> String {
-        home_dir().expect("Fail").display().to_string() + "/.config/resup/toolchains"
-    }
-
     pub fn get_config_path() -> String {
         home_dir().expect("Fail").display().to_string() + "/.config/resup/config.toml"
     }
@@ -57,12 +51,6 @@ impl Manager {
         let resup_path = Self::get_config_dir();
         if !Path::new(&resup_path).exists() {
             fs::create_dir(&resup_path).expect("Failed to create directory.");
-        }
-
-        let toolchains_path =
-            home_dir().expect("Fail").display().to_string() + "/.config/resup/toolchains";
-        if !Path::new(&toolchains_path).exists() {
-            fs::create_dir(&toolchains_path).expect("Failed to create directory.");
         }
 
         let config_path =
