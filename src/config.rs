@@ -1,8 +1,8 @@
-use std::{path::Path, fs};
 use home::{env::Env, home_dir};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::{fs, path::Path};
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct UpscaleOptions {
     pub model: String,
     pub models_path: String,
@@ -12,26 +12,32 @@ pub struct UpscaleOptions {
 
 impl Default for UpscaleOptions {
     fn default() -> Self {
-        Self { model: String::from("realesrgan-x4plus"), suffix: String::from("upscaled"), models_path: String::from("/usr/share/realesrgan-ncnn-vulkan/models"), executable: String::from("/usr/bin/realesrgan-ncnn-vulkan") }
+        Self {
+            model: String::from("realesrgan-x4plus"),
+            suffix: String::from("upscaled"),
+            models_path: String::from("/usr/share/realesrgan-ncnn-vulkan/models"),
+            executable: String::from("/usr/bin/realesrgan-ncnn-vulkan"),
+        }
     }
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub upscale: UpscaleOptions
+    pub upscale: UpscaleOptions,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            upscale: UpscaleOptions { ..Default::default() }
+            upscale: UpscaleOptions {
+                ..Default::default()
+            },
         }
     }
 }
 
 pub struct Manager;
 impl Manager {
-
     pub fn get_config_dir() -> String {
         home_dir().expect("Fail").display().to_string() + "/.config/resup"
     }
@@ -46,18 +52,21 @@ impl Manager {
 
     pub fn make_default() {
         let default_config: Config = Config::default();
-        let toml_config: String = toml::to_string(&default_config).expect("Failed to format config.");
+        let toml_config: String =
+            toml::to_string(&default_config).expect("Failed to format config.");
         let resup_path = Self::get_config_dir();
         if !Path::new(&resup_path).exists() {
             fs::create_dir(&resup_path).expect("Failed to create directory.");
         }
 
-        let toolchains_path = home_dir().expect("Fail").display().to_string() + "/.config/resup/toolchains";
+        let toolchains_path =
+            home_dir().expect("Fail").display().to_string() + "/.config/resup/toolchains";
         if !Path::new(&toolchains_path).exists() {
             fs::create_dir(&toolchains_path).expect("Failed to create directory.");
         }
-        
-        let config_path = home_dir().expect("Fail").display().to_string() + "/.config/resup/config.toml";
+
+        let config_path =
+            home_dir().expect("Fail").display().to_string() + "/.config/resup/config.toml";
         fs::write(config_path, toml_config).expect("Failed to write config data.");
     }
 
@@ -66,13 +75,16 @@ impl Manager {
     }
 
     pub fn load() -> Config {
-        let config_string: String = fs::read_to_string(Self::get_config_path()).expect("Failed to read config.");
-        let config_struct: Config = toml::from_str(&config_string).expect("Failed to format config.");
+        let config_string: String =
+            fs::read_to_string(Self::get_config_path()).expect("Failed to read config.");
+        let config_struct: Config =
+            toml::from_str(&config_string).expect("Failed to format config.");
         config_struct
     }
 
     pub fn write(config: Config) {
         let config_string: String = toml::to_string(&config).expect("Failed to format config.");
-        fs::write(Self::get_config_path(), config_string).expect("Failed to write content to file.");
+        fs::write(Self::get_config_path(), config_string)
+            .expect("Failed to write content to file.");
     }
 }
