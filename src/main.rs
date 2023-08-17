@@ -75,7 +75,7 @@ fn main() {
                     Term::error("Upscale failed.");
                 }
             }
-        }
+        },
         _ => Term::error("Unknown command."),
     }
 }

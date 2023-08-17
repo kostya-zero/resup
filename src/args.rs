@@ -33,5 +33,19 @@ pub fn app() -> Command {
                         .default_value("")
                         .value_parser(value_parser!(String)),
                 ),
+
+            Command::new("config")
+                .about("Get path to config file."),
+
+            Command::new("model")
+                .about("Set or get current model.")
+                .arg(
+                    Arg::new("model")
+                    .help("Model name to set.")
+                    .required(false)
+                    .num_args(1)
+                    .default_value("")
+                    .value_parser(value_parser!(String))
+                ),
         ])
 }
