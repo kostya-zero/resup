@@ -76,6 +76,52 @@ fn main() {
                 }
             }
         }
+        Some(("model", sub)) => {
+            let model_name: String = sub
+                .get_one::<String>("model")
+                .expect("Failed to get path variable.")
+                .to_string();
+            let mut config: Config = Manager::load();
+            if model_name.is_empty() {
+                Term::message(format!("Current model: {}", config.upscale.model).as_str());
+                exit(0);
+            }
+
+            if config.upscale.model == model_name {
+                Term::warn("Attempt to set same model name.");
+                exit(0);
+            }
+
+            config.upscale.model = model_name;
+            Manager::write(config);
+            Term::message("Config saved.");
+        }
+        Some(("models-dir", sub)) => {
+            let path: String = sub
+                .get_one::<String>("path")
+                .expect("Failed to get path variable.")
+                .to_string();
+            let mut config: Config = Manager::load();
+            if path.is_empty() {
+                Term::message(
+                    format!(
+                        "Current path to model directory: {}",
+                        config.upscale.models_path
+                    )
+                    .as_str(),
+                );
+                exit(0);
+            }
+
+            if config.upscale.models_path == path {
+                Term::warn("Attempt to set same path to models directory.");
+                exit(0);
+            }
+
+            config.upscale.models_path = path;
+            Manager::write(config);
+            Term::message("Config saved.");
+        }
         Some(("executable", sub)) => {
             let executable: String = sub
                 .get_one::<String>("path")
@@ -97,6 +143,9 @@ fn main() {
             config.upscale.executable = executable;
             Manager::write(config);
             Term::message("Config saved.");
+        }
+        Some(("config", _sub)) => {
+            println!("Path to config: {}", Manager::get_config_path());
         }
         _ => Term::error("Unknown command."),
     }

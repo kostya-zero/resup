@@ -44,5 +44,15 @@ pub fn app() -> Command {
                         .default_value("")
                         .value_parser(value_parser!(String)),
                 ),
+            Command::new("models-dir")
+                .about("Set or get current models directory.")
+                .arg(
+                    Arg::new("path")
+                        .help("Path to directory with models.")
+                        .required(false)
+                        .num_args(1)
+                        .default_value("")
+                        .value_parser(value_parser!(String)),
+                ),
         ])
 }
