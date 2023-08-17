@@ -4,7 +4,7 @@ use std::{
 };
 
 use args::app;
-use config::Manager;
+use config::{Config, Manager};
 use term::Term;
 
 mod args;
@@ -14,7 +14,7 @@ mod term;
 fn main() {
     if !Manager::exists() {
         Manager::make_default();
-    } 
+    }
     let args = app().get_matches();
     match args.subcommand() {
         Some(("upscale", sub)) => {
@@ -75,7 +75,29 @@ fn main() {
                     Term::error("Upscale failed.");
                 }
             }
-        },
+        }
+        Some(("executable", sub)) => {
+            let executable: String = sub
+                .get_one::<String>("path")
+                .expect("Failed to get path variable.")
+                .to_string();
+            let mut config: Config = Manager::load();
+            if executable.is_empty() {
+                Term::message(
+                    format!("Current path to executable: {}", config.upscale.executable).as_str(),
+                );
+                exit(0);
+            }
+
+            if config.upscale.executable == executable {
+                Term::warn("Attempt to set same path to executable.");
+                exit(0);
+            }
+
+            config.upscale.executable = executable;
+            Manager::write(config);
+            Term::message("Config saved.");
+        }
         _ => Term::error("Unknown command."),
     }
 }
