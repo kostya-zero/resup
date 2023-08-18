@@ -26,6 +26,7 @@ fn main() {
                 .get_one::<String>("output")
                 .expect("Failed to get output file.")
                 .to_string();
+            let overwrite: bool = sub.get_flag("overwrite");
             if output.is_empty() {
                 let file_name = Path::new(&input)
                     .file_stem()
@@ -36,7 +37,7 @@ fn main() {
                 output = file_name + "-upscaled.png";
             }
 
-            if Path::new(&output).exists() {
+            if Path::new(&output).exists() && !overwrite {
                 Term::error(
                     format!(
                         "File with name {} already exists. Try new name or remove this file.",
@@ -48,6 +49,11 @@ fn main() {
             }
 
             let config = Manager::load();
+            Term::message("Preparing to upscale...");
+            Term::display_data("Model", &config.upscale.model);
+            Term::display_data("Executable", &config.upscale.executable);
+            Term::display_data("Input file", &input);
+            Term::display_data("Output file", &output);
             let mut cmd = Command::new(config.upscale.executable);
             cmd.args(vec![
                 "-i",
@@ -66,13 +72,27 @@ fn main() {
             cmd.stdout(Stdio::inherit());
             cmd.stdin(Stdio::inherit());
             cmd.stderr(Stdio::inherit());
+            Term::message("Starting...");
             let process_result = cmd.output();
             match process_result {
                 Ok(_) => {
-                    Term::message("Upscale completed!");
+                    Term::done("Upscale completed!");
                 }
-                Err(_) => {
-                    Term::error("Upscale failed.");
+                Err(i) => {
+                    match i.kind() {
+                        std::io::ErrorKind::NotFound => {
+                            Term::error("Cannot find executable file. Check if path set correctly.");
+                            exit(1);
+                        },
+                        std::io::ErrorKind::Interrupted => {
+                            Term::error("Interrupted.");
+                            exit(1);
+                        }
+                        _ => {
+                            Term::error("Unknown error ocurs.");
+                            exit(1);
+                        }
+                    }
                 }
             }
         }
@@ -83,7 +103,7 @@ fn main() {
                 .to_string();
             let mut config: Config = Manager::load();
             if model_name.is_empty() {
-                Term::message(format!("Current model: {}", config.upscale.model).as_str());
+                Term::display_data("Current model", &config.upscale.model);
                 exit(0);
             }
 
@@ -103,13 +123,7 @@ fn main() {
                 .to_string();
             let mut config: Config = Manager::load();
             if path.is_empty() {
-                Term::message(
-                    format!(
-                        "Current path to model directory: {}",
-                        config.upscale.models_path
-                    )
-                    .as_str(),
-                );
+                Term::display_data("Current path to directory with models", &config.upscale.models_path);
                 exit(0);
             }
 
@@ -129,9 +143,7 @@ fn main() {
                 .to_string();
             let mut config: Config = Manager::load();
             if executable.is_empty() {
-                Term::message(
-                    format!("Current path to executable: {}", config.upscale.executable).as_str(),
-                );
+                Term::display_data("Current path to executable", &config.upscale.executable);
                 exit(0);
             }
 
@@ -145,7 +157,7 @@ fn main() {
             Term::message("Config saved.");
         }
         Some(("config", _sub)) => {
-            println!("Path to config: {}", Manager::get_config_path());
+            Term::display_data("Path to config", Manager::get_config_path().as_str());
         }
         _ => Term::error("Unknown command."),
     }

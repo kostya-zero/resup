@@ -1,4 +1,4 @@
-use clap::{value_parser, Arg, Command};
+use clap::{value_parser, Arg, Command, ArgAction};
 
 pub fn app() -> Command {
     Command::new("resup")
@@ -22,6 +22,10 @@ pub fn app() -> Command {
                         .num_args(1)
                         .default_value("")
                         .value_parser(value_parser!(String)),
+                    Arg::new("overwrite")
+                        .help("Overwrite file content if file with same name exists.")
+                        .long("overwrite")
+                        .action(ArgAction::SetTrue),
                 ]),
             Command::new("executable")
                 .about("Set path to executable")

@@ -1,9 +1,11 @@
+# Cargo
 /target
+
+# Editors/IDEs
 .vscode
 .idea 
 
-# Added by cargo
-#
-# already existing elements were commented out
-
-#/target
+# For testing
+test_pic.jpg
+test_pic.png
+test_pic-upscaled.png
