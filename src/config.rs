@@ -23,7 +23,7 @@ impl Config {
     pub fn get_model(&self) -> String {
         self.model.to_string()
     }
-    
+
     pub fn set_model(&mut self, model_name: &str) {
         self.model = String::from(model_name);
     }
@@ -31,7 +31,7 @@ impl Config {
     pub fn get_models_path(&self) -> String {
         self.models_path.to_string()
     }
-    
+
     pub fn set_models_path(&mut self, models_path: &str) {
         self.models_path = String::from(models_path);
     }
@@ -39,7 +39,7 @@ impl Config {
     pub fn get_executable_path(&self) -> String {
         self.executable.to_string()
     }
-    
+
     pub fn set_executable_path(&mut self, executable: &str) {
         self.executable = String::from(executable);
     }
@@ -104,6 +104,4 @@ impl Manager {
         fs::write(Self::get_config_path(), config_string)
             .expect("Failed to write content to file.");
     }
-
-
 }

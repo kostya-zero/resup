@@ -18,14 +18,8 @@ fn main() {
     let args = app().get_matches();
     match args.subcommand() {
         Some(("upscale", sub)) => {
-            let input = sub
-                .get_one::<String>("input")
-                .unwrap()
-                .to_string();
-            let mut output: String = sub
-                .get_one::<String>("output")
-                .unwrap()
-                .to_string();
+            let input = sub.get_one::<String>("input").unwrap().to_string();
+            let mut output: String = sub.get_one::<String>("output").unwrap().to_string();
             let overwrite: bool = sub.get_flag("overwrite");
             if output.is_empty() {
                 let file_name = Path::new(&input)
@@ -95,10 +89,7 @@ fn main() {
             }
         }
         Some(("model", sub)) => {
-            let model_name: String = sub
-                .get_one::<String>("model")
-                .unwrap()
-                .to_string();
+            let model_name: String = sub.get_one::<String>("model").unwrap().to_string();
             let mut config: Config = Manager::load();
             if model_name.is_empty() {
                 Term::display_data("Current model", &config.get_model());
@@ -121,10 +112,7 @@ fn main() {
             Term::message("Config saved.");
         }
         Some(("models-dir", sub)) => {
-            let path: String = sub
-                .get_one::<String>("path")
-                .unwrap()
-                .to_string();
+            let path: String = sub.get_one::<String>("path").unwrap().to_string();
             let mut config: Config = Manager::load();
             if path.is_empty() {
                 Term::display_data(
@@ -132,7 +120,9 @@ fn main() {
                     &config.get_models_path(),
                 );
                 if !config.check_models_path_exists() {
-                    Term::error("Failed to find directory with models. Please check if path set correctly.");
+                    Term::error(
+                        "Failed to find directory with models. Please check if path set correctly.",
+                    );
                 }
                 exit(0);
             }
@@ -146,10 +136,7 @@ fn main() {
             Term::message("Config saved.");
         }
         Some(("executable", sub)) => {
-            let executable: String = sub
-                .get_one::<String>("path")
-                .unwrap()
-                .to_string();
+            let executable: String = sub.get_one::<String>("path").unwrap().to_string();
             let mut config: Config = Manager::load();
             if executable.is_empty() {
                 Term::display_data("Current path to executable", &config.get_executable_path());

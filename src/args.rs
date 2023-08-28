@@ -1,4 +1,4 @@
-use clap::{value_parser, Arg, Command, ArgAction};
+use clap::{value_parser, Arg, ArgAction, Command};
 
 pub fn app() -> Command {
     Command::new("resup")
