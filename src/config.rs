@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
 #[derive(Serialize, Deserialize)]
-pub struct UpscaleOptions {
-    pub model: String,
-    pub models_path: String,
-    pub executable: String,
+pub struct Config {
+    model: String,
+    models_path: String,
+    executable: String,
 }
 
-impl Default for UpscaleOptions {
+impl Default for Config {
     fn default() -> Self {
         Self {
             model: String::from("realesrgan-x4plus"),
@@ -19,18 +19,47 @@ impl Default for UpscaleOptions {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Config {
-    pub upscale: UpscaleOptions,
-}
+impl Config {
+    pub fn get_model(&self) -> String {
+        self.model.to_string()
+    }
+    
+    pub fn set_model(&mut self, model_name: &str) {
+        self.model = String::from(model_name);
+    }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            upscale: UpscaleOptions {
-                ..Default::default()
-            },
-        }
+    pub fn get_models_path(&self) -> String {
+        self.models_path.to_string()
+    }
+    
+    pub fn set_models_path(&mut self, models_path: &str) {
+        self.models_path = String::from(models_path);
+    }
+
+    pub fn get_executable_path(&self) -> String {
+        self.executable.to_string()
+    }
+    
+    pub fn set_executable_path(&mut self, executable: &str) {
+        self.executable = String::from(executable);
+    }
+
+    pub fn check_model_param_exists(&self) -> bool {
+        let model_path = self.get_models_path() + "/" + &self.get_model() + ".param";
+        Path::new(&model_path).exists()
+    }
+
+    pub fn check_model_bin_exists(&self) -> bool {
+        let model_path = self.get_models_path() + "/" + &self.get_model() + ".bin";
+        Path::new(&model_path).exists()
+    }
+
+    pub fn check_models_path_exists(&self) -> bool {
+        Path::new(&self.get_models_path()).exists()
+    }
+
+    pub fn check_executable_exists(&self) -> bool {
+        Path::new(&self.get_executable_path()).exists()
     }
 }
 
@@ -75,4 +104,6 @@ impl Manager {
         fs::write(Self::get_config_path(), config_string)
             .expect("Failed to write content to file.");
     }
+
+
 }

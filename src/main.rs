@@ -20,11 +20,11 @@ fn main() {
         Some(("upscale", sub)) => {
             let input = sub
                 .get_one::<String>("input")
-                .expect("Failed to get input file name.")
+                .unwrap()
                 .to_string();
             let mut output: String = sub
                 .get_one::<String>("output")
-                .expect("Failed to get output file.")
+                .unwrap()
                 .to_string();
             let overwrite: bool = sub.get_flag("overwrite");
             if output.is_empty() {
@@ -50,11 +50,11 @@ fn main() {
 
             let config = Manager::load();
             Term::message("Preparing to upscale...");
-            Term::display_data("Model", &config.upscale.model);
-            Term::display_data("Executable", &config.upscale.executable);
+            Term::display_data("Model", &config.get_model());
+            Term::display_data("Executable", &config.get_executable_path());
             Term::display_data("Input file", &input);
             Term::display_data("Output file", &output);
-            let mut cmd = Command::new(config.upscale.executable);
+            let mut cmd = Command::new(config.get_executable_path());
             cmd.args(vec![
                 "-i",
                 &input,
@@ -65,9 +65,9 @@ fn main() {
                 "-f",
                 "png",
                 "-m",
-                &config.upscale.models_path,
+                &config.get_models_path(),
                 "-n",
-                &config.upscale.model,
+                &config.get_model(),
             ]);
             cmd.stdout(Stdio::inherit());
             cmd.stdin(Stdio::inherit());
@@ -78,81 +78,93 @@ fn main() {
                 Ok(_) => {
                     Term::done("Upscale completed!");
                 }
-                Err(i) => {
-                    match i.kind() {
-                        std::io::ErrorKind::NotFound => {
-                            Term::error("Cannot find executable file. Check if path set correctly.");
-                            exit(1);
-                        },
-                        std::io::ErrorKind::Interrupted => {
-                            Term::error("Interrupted.");
-                            exit(1);
-                        }
-                        _ => {
-                            Term::error("Unknown error ocurs.");
-                            exit(1);
-                        }
+                Err(i) => match i.kind() {
+                    std::io::ErrorKind::NotFound => {
+                        Term::error("Cannot find executable file. Check if path set correctly.");
+                        exit(1);
                     }
-                }
+                    std::io::ErrorKind::Interrupted => {
+                        Term::error("Interrupted.");
+                        exit(1);
+                    }
+                    _ => {
+                        Term::error("Unknown error ocurs.");
+                        exit(1);
+                    }
+                },
             }
         }
         Some(("model", sub)) => {
             let model_name: String = sub
                 .get_one::<String>("model")
-                .expect("Failed to get path variable.")
+                .unwrap()
                 .to_string();
             let mut config: Config = Manager::load();
             if model_name.is_empty() {
-                Term::display_data("Current model", &config.upscale.model);
+                Term::display_data("Current model", &config.get_model());
+                if !config.check_model_param_exists() {
+                    Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
+                }
+                if !config.check_model_bin_exists() {
+                    Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
+                }
                 exit(0);
             }
 
-            if config.upscale.model == model_name {
+            if config.get_model() == model_name {
                 Term::warn("Attempt to set same model name.");
                 exit(0);
             }
 
-            config.upscale.model = model_name;
+            config.set_model(&model_name);
             Manager::write(config);
             Term::message("Config saved.");
         }
         Some(("models-dir", sub)) => {
             let path: String = sub
                 .get_one::<String>("path")
-                .expect("Failed to get path variable.")
+                .unwrap()
                 .to_string();
             let mut config: Config = Manager::load();
             if path.is_empty() {
-                Term::display_data("Current path to directory with models", &config.upscale.models_path);
+                Term::display_data(
+                    "Current path to directory with models",
+                    &config.get_models_path(),
+                );
+                if !config.check_models_path_exists() {
+                    Term::error("Failed to find directory with models. Please check if path set correctly.");
+                }
                 exit(0);
             }
 
-            if config.upscale.models_path == path {
+            if config.get_models_path() == path {
                 Term::warn("Attempt to set same path to models directory.");
                 exit(0);
             }
-
-            config.upscale.models_path = path;
+            config.set_models_path(&path);
             Manager::write(config);
             Term::message("Config saved.");
         }
         Some(("executable", sub)) => {
             let executable: String = sub
                 .get_one::<String>("path")
-                .expect("Failed to get path variable.")
+                .unwrap()
                 .to_string();
             let mut config: Config = Manager::load();
             if executable.is_empty() {
-                Term::display_data("Current path to executable", &config.upscale.executable);
+                Term::display_data("Current path to executable", &config.get_executable_path());
+                if !config.check_executable_exists() {
+                    Term::error("Failed to find executable by given path. Please check if path set correctly.");
+                }
                 exit(0);
             }
 
-            if config.upscale.executable == executable {
+            if config.get_executable_path() == executable {
                 Term::warn("Attempt to set same path to executable.");
                 exit(0);
             }
 
-            config.upscale.executable = executable;
+            config.set_executable_path(&executable);
             Manager::write(config);
             Term::message("Config saved.");
         }
