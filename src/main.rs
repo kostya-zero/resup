@@ -1,4 +1,9 @@
-use std::{path::Path, process::exit};
+use std::{
+    fs,
+    mem::align_of_val,
+    path::{Path, PathBuf},
+    process::exit,
+};
 
 use args::app;
 use config::{Config, Manager};
@@ -83,10 +88,39 @@ fn main() {
             }
         }
         Some(("list", _sub)) => {
-            let mut config: Config = Manager::load();
+            let config: Config = Manager::load();
             if !config.check_models_path_exists() {
                 Term::error("Failed to find model directory. Check if path set correctly.");
                 exit(1);
+            }
+
+            let models_path = config.get_models_path();
+            let mut available_models: Vec<String> = Vec::new();
+            for entry in fs::read_dir(models_path.clone()).unwrap() {
+                let entry: PathBuf = entry.unwrap().path();
+                let entry_path: &str = entry.to_str().unwrap();
+                let filename: &str = Path::new(entry_path).file_stem().unwrap().to_str().unwrap();
+                if available_models.contains(&filename.to_string()) {
+                    continue;
+                }
+
+                let param_path: String = models_path.clone() + "/" + filename + ".param";
+                let bin_path: String = models_path.clone() + "/" + filename + ".bin";
+                let param_found: bool = Path::new(&param_path).exists();
+                let bin_found: bool = Path::new(&bin_path).exists();
+
+                if param_found && bin_found {
+                    available_models.push(filename.to_string());
+                }
+            }
+
+            Term::message("Available models:");
+            for i in available_models.iter() {
+                if *i == config.get_model() {
+                    Term::no_icon_message(format!("{} (current)", i).as_str());
+                } else {
+                    Term::no_icon_message(i);
+                }
             }
         }
         Some(("model", sub)) => {

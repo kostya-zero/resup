@@ -4,6 +4,10 @@ impl Term {
         println!("\x1b[1m 󰍡 {}\x1b[0m", msg);
     }
 
+    pub fn no_icon_message(msg: &str) {
+        println!("\x1b[1m   {}\x1b[0m", msg);
+    }
+
     pub fn display_data(name: &str, data: &str) {
         println!("\x1b[1m 󰆼 {}:\x1b[0m {}", name, data);
     }
