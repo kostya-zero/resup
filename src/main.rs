@@ -1,14 +1,16 @@
 use std::{
     path::Path,
-    process::{exit, Command, Stdio},
+    process::{exit},
 };
 
 use args::app;
 use config::{Config, Manager};
+use proc::{run_upscale, UpscaleError};
 use term::Term;
 
 mod args;
 mod config;
+mod proc;
 mod term;
 
 fn main() {
@@ -43,47 +45,42 @@ fn main() {
             }
 
             let config = Manager::load();
+            let quite: bool = false;
             Term::message("Preparing to upscale...");
-            Term::display_data("Model", &config.get_model());
-            Term::display_data("Executable", &config.get_executable_path());
-            Term::display_data("Input file", &input);
-            Term::display_data("Output file", &output);
-            let mut cmd = Command::new(config.get_executable_path());
-            cmd.args(vec![
-                "-i",
-                &input,
-                "-o",
-                &output,
-                "-s",
-                "4",
-                "-f",
-                "png",
-                "-m",
-                &config.get_models_path(),
-                "-n",
-                &config.get_model(),
-            ]);
-            cmd.stdout(Stdio::inherit());
-            cmd.stdin(Stdio::inherit());
-            cmd.stderr(Stdio::inherit());
-            Term::message("Starting...");
-            let process_result = cmd.output();
-            match process_result {
-                Ok(_) => {
-                    Term::done("Upscale completed!");
-                }
-                Err(i) => match i.kind() {
-                    std::io::ErrorKind::NotFound => {
-                        Term::error("Cannot find executable file. Check if path set correctly.");
+            if quite {
+                Term::display_data("Model", &config.get_model());
+                Term::display_data("Executable", &config.get_executable_path());
+                Term::display_data("Input file", &input);
+                Term::display_data("Output file", &output);
+                Term::message("Starting...");
+            }
+            let upscale_result: Result<(), UpscaleError> =
+                run_upscale(config, &input, &output, quite);
+            match upscale_result {
+                Ok(_) => Term::done("Upscale completed!"),
+                Err(e) => match e {
+                    UpscaleError::ExecutableNotFound => {
+                        Term::error("Failed to run executable file because it's not found.");
                         exit(1);
                     }
-                    std::io::ErrorKind::Interrupted => {
-                        Term::error("Interrupted.");
+                    UpscaleError::ProcessInterrupted => {
+                        Term::error("Process interrupted.");
                         exit(1);
                     }
-                    _ => {
-                        Term::error("Unknown error ocurs.");
+                    UpscaleError::UnknownError => {
+                        Term::error("Upscale failed with unknown reason.");
                         exit(1);
+                    }
+                    UpscaleError::ModelsDirectoryNotFound => {
+                        Term::error("Failed to find directory with models. Please check if path set correctly.",);
+                        exit(1)
+                    }
+                    UpscaleError::ModelParamNotFound => {
+                        Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
+                        exit(1)
+                    }
+                    UpscaleError::ModelBinNotFound => {
+                        Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
                     }
                 },
             }
