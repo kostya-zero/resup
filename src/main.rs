@@ -1,6 +1,6 @@
 use std::{
     path::Path,
-    process::{exit},
+    process::exit,
 };
 
 use args::app;
