@@ -25,6 +25,12 @@ pub fn app() -> Command {
                     Arg::new("overwrite")
                         .help("Overwrite file content if file with same name exists.")
                         .long("overwrite")
+                        .short('o')
+                        .action(ArgAction::SetTrue),
+                    Arg::new("quite")
+                        .help("Run upscale without configuration info and Real-ESRGAN output.")
+                        .short('q')
+                        .long("quite")
                         .action(ArgAction::SetTrue),
                 ]),
             Command::new("list").about("List available models."),

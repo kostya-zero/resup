@@ -8,10 +8,15 @@ pub enum UpscaleError {
     ModelsDirectoryNotFound,
     ModelParamNotFound,
     ModelBinNotFound,
-    UnknownError
+    UnknownError,
 }
 
-pub fn run_upscale(config: Config, input: &str, output: &str, quite: bool) -> Result<(), UpscaleError> {
+pub fn run_upscale(
+    config: Config,
+    input: &str,
+    output: &str,
+    quite: bool,
+) -> Result<(), UpscaleError> {
     let mut proc: Command = Command::new(config.get_executable_path());
     proc.args(vec![
         "-i",
@@ -31,6 +36,10 @@ pub fn run_upscale(config: Config, input: &str, output: &str, quite: bool) -> Re
         proc.stdout(Stdio::inherit());
         proc.stdin(Stdio::inherit());
         proc.stderr(Stdio::inherit());
+    } else {
+        proc.stdout(Stdio::piped());
+        proc.stdin(Stdio::piped());
+        proc.stderr(Stdio::piped());
     }
     if !config.check_executable_exists() {
         return Err(UpscaleError::ExecutableNotFound);
@@ -50,7 +59,7 @@ pub fn run_upscale(config: Config, input: &str, output: &str, quite: bool) -> Re
         Err(e) => match e.kind() {
             std::io::ErrorKind::NotFound => Err(UpscaleError::ExecutableNotFound),
             std::io::ErrorKind::Interrupted => Err(UpscaleError::ProcessInterrupted),
-            _ => Err(UpscaleError::UnknownError)
-        }
+            _ => Err(UpscaleError::UnknownError),
+        },
     }
 }

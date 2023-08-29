@@ -1,6 +1,5 @@
 use std::{
     fs,
-    mem::align_of_val,
     path::{Path, PathBuf},
     process::exit,
 };
@@ -25,6 +24,7 @@ fn main() {
             let input = sub.get_one::<String>("input").unwrap().to_string();
             let mut output: String = sub.get_one::<String>("output").unwrap().to_string();
             let overwrite: bool = sub.get_flag("overwrite");
+            let quite: bool = sub.get_flag("quite");
             if output.is_empty() {
                 let file_name = Path::new(&input)
                     .file_stem()
@@ -47,15 +47,14 @@ fn main() {
             }
 
             let config = Manager::load();
-            let quite: bool = false;
             Term::message("Preparing to upscale...");
-            if quite {
+            if !quite {
                 Term::display_data("Model", &config.get_model());
                 Term::display_data("Executable", &config.get_executable_path());
                 Term::display_data("Input file", &input);
                 Term::display_data("Output file", &output);
-                Term::message("Starting...");
             }
+            Term::message("Starting...");
             let upscale_result: Result<(), UpscaleError> =
                 run_upscale(config, &input, &output, quite);
             match upscale_result {
