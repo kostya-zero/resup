@@ -1,7 +1,11 @@
 [package]
 name = "resup"
-description = "A frontend for realesrgan-ncnn-vulkan upscaler for terminal."
-version = "0.1.0-dev"
+description = "A terminal frontend for Real-ESRGAN."
+authors = ["Konstantin Zhigaylo <kostya.zero@outlook.com>"]
+keywords = ["realesrgan", "upscale"]
+readme = "README.md"
+repository = "https://github.com/kostya-zero/resup"
+version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]

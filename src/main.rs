@@ -1,7 +1,4 @@
-use std::{
-    path::Path,
-    process::exit,
-};
+use std::{path::Path, process::exit};
 
 use args::app;
 use config::{Config, Manager};
@@ -83,6 +80,13 @@ fn main() {
                         Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
                     }
                 },
+            }
+        }
+        Some(("list", _sub)) => {
+            let mut config: Config = Manager::load();
+            if !config.check_models_path_exists() {
+                Term::error("Failed to find model directory. Check if path set correctly.");
+                exit(1);
             }
         }
         Some(("model", sub)) => {

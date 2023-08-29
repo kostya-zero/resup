@@ -27,6 +27,7 @@ pub fn app() -> Command {
                         .long("overwrite")
                         .action(ArgAction::SetTrue),
                 ]),
+            Command::new("list").about("List available models."),
             Command::new("executable")
                 .about("Set path to executable")
                 .arg(
