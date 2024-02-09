@@ -10,7 +10,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-clap = "4.3.21"
-home = "0.5.5"
-serde = { version = "1.0.183", features = ["derive"] }
-toml = "0.7.6"
+clap = "4.5.0"
+home = "0.5.9"
+serde = { version = "1.0.196", features = ["derive"] }
+toml = "0.8.10"
