@@ -1,12 +1,12 @@
 [package]
 name = "resup"
 description = "A terminal frontend for Real-ESRGAN."
-authors = ["Konstantin Zhigaylo <kostya.zero@outlook.com>"]
+authors = ["Konstantin Zhigaylo <zero@kostyazero.com>"]
 keywords = ["realesrgan", "upscale"]
 readme = "README.md"
 repository = "https://github.com/kostya-zero/resup"
 license = "MIT"
-version = "0.2.0"
+version = "0.2.1-dev"
 edition = "2021"
 
 [dependencies]
@@ -14,3 +14,8 @@ clap = "4.5.0"
 home = "0.5.9"
 serde = { version = "1.0.196", features = ["derive"] }
 toml = "0.8.10"
+
+[profile.release]
+lto = "thin"
+opt-level = 2
+codegen-units = 1
