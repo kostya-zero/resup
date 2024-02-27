@@ -17,7 +17,7 @@ pub fn run_upscale(
     output: &str,
     quite: bool,
 ) -> Result<(), UpscaleError> {
-    let mut proc: Command = Command::new(config.get_executable_path());
+    let mut proc: Command = Command::new(&config.executable);
     proc.args(vec![
         "-i",
         input,
@@ -28,9 +28,9 @@ pub fn run_upscale(
         "-f",
         "png",
         "-m",
-        &config.get_models_path(),
+        &config.models_path,
         "-n",
-        &config.get_model(),
+        &config.model,
     ]);
     if !quite {
         proc.stdout(Stdio::inherit());

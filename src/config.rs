@@ -4,9 +4,9 @@ use std::{fs, path::Path};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    model: String,
-    models_path: String,
-    executable: String,
+    pub model: String,
+    pub models_path: String,
+    pub executable: String,
 }
 
 impl Default for Config {
@@ -20,57 +20,32 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn get_model(&self) -> String {
-        self.model.to_string()
-    }
-
-    pub fn set_model(&mut self, model_name: &str) {
-        self.model = String::from(model_name);
-    }
-
-    pub fn get_models_path(&self) -> String {
-        self.models_path.to_string()
-    }
-
-    pub fn set_models_path(&mut self, models_path: &str) {
-        self.models_path = String::from(models_path);
-    }
-
-    pub fn get_executable_path(&self) -> String {
-        self.executable.to_string()
-    }
-
-    pub fn set_executable_path(&mut self, executable: &str) {
-        self.executable = String::from(executable);
-    }
 
     pub fn check_model_param_exists(&self) -> bool {
-        let model_path = self.get_models_path() + "/" + &self.get_model() + ".param";
-        Path::new(&model_path).exists()
+        Path::new(&self.models_path).join(self.model.clone() + ".param").exists()
     }
 
     pub fn check_model_bin_exists(&self) -> bool {
-        let model_path = self.get_models_path() + "/" + &self.get_model() + ".bin";
-        Path::new(&model_path).exists()
+        Path::new(&self.models_path).join(self.model.clone() + ".bin").exists()
     }
 
     pub fn check_models_path_exists(&self) -> bool {
-        Path::new(&self.get_models_path()).exists()
+        Path::new(&self.models_path).exists()
     }
 
     pub fn check_executable_exists(&self) -> bool {
-        Path::new(&self.get_executable_path()).exists()
+        Path::new(&self.executable).exists()
     }
 }
 
 pub struct Manager;
 impl Manager {
     pub fn get_config_dir() -> String {
-        home_dir().expect("Fail").display().to_string() + "/.config/resup"
+        home_dir().unwrap().join(".config").join("resup").display().to_string()
     }
 
     pub fn get_config_path() -> String {
-        home_dir().expect("Fail").display().to_string() + "/.config/resup/config.toml"
+        home_dir().unwrap().join(".config").join("resup").join("config.toml").display().to_string()
     }
 
     pub fn make_default() {
@@ -82,9 +57,7 @@ impl Manager {
             fs::create_dir(&resup_path).expect("Failed to create directory.");
         }
 
-        let config_path =
-            home_dir().expect("Fail").display().to_string() + "/.config/resup/config.toml";
-        fs::write(config_path, toml_config).expect("Failed to write config data.");
+        fs::write(Self::get_config_path(), toml_config).expect("Failed to write config data.");
     }
 
     pub fn exists() -> bool {

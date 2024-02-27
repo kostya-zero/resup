@@ -49,8 +49,8 @@ fn main() {
             let config = Manager::load();
             Term::message("Preparing to upscale...");
             if !quite {
-                Term::display_data("Model", &config.get_model());
-                Term::display_data("Executable", &config.get_executable_path());
+                Term::display_data("Model", &config.model);
+                Term::display_data("Executable", &config.executable);
                 Term::display_data("Input file", &input);
                 Term::display_data("Output file", &output);
             }
@@ -93,7 +93,7 @@ fn main() {
                 exit(1);
             }
 
-            let models_path = config.get_models_path();
+            let models_path = config.models_path;
             let mut available_models: Vec<String> = Vec::new();
             for entry in fs::read_dir(models_path.clone()).unwrap() {
                 let entry: PathBuf = entry.unwrap().path();
@@ -115,7 +115,7 @@ fn main() {
 
             Term::message("Available models:");
             for i in available_models.iter() {
-                if *i == config.get_model() {
+                if *i == config.model {
                     Term::no_icon_message(format!("{} (current)", i).as_str());
                 } else {
                     Term::no_icon_message(i);
@@ -126,7 +126,7 @@ fn main() {
             let model_name: String = sub.get_one::<String>("model").unwrap().to_string();
             let mut config: Config = Manager::load();
             if model_name.is_empty() {
-                Term::display_data("Current model", &config.get_model());
+                Term::display_data("Current model", &config.model);
                 if !config.check_model_param_exists() {
                     Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
                 }
@@ -136,12 +136,12 @@ fn main() {
                 exit(0);
             }
 
-            if config.get_model() == model_name {
+            if config.model == model_name {
                 Term::warn("Attempt to set same model name.");
                 exit(0);
             }
 
-            config.set_model(&model_name);
+            config.model = model_name;
             Manager::write(config);
             Term::message("Config saved.");
         }
@@ -151,7 +151,7 @@ fn main() {
             if path.is_empty() {
                 Term::display_data(
                     "Current path to directory with models",
-                    &config.get_models_path(),
+                    &config.models_path,
                 );
                 if !config.check_models_path_exists() {
                     Term::error(
@@ -161,11 +161,11 @@ fn main() {
                 exit(0);
             }
 
-            if config.get_models_path() == path {
+            if config.models_path == path {
                 Term::warn("Attempt to set same path to models directory.");
                 exit(0);
             }
-            config.set_models_path(&path);
+            config.models_path = path;
             Manager::write(config);
             Term::message("Config saved.");
         }
@@ -173,19 +173,19 @@ fn main() {
             let executable: String = sub.get_one::<String>("path").unwrap().to_string();
             let mut config: Config = Manager::load();
             if executable.is_empty() {
-                Term::display_data("Current path to executable", &config.get_executable_path());
+                Term::display_data("Current path to executable", &config.executable);
                 if !config.check_executable_exists() {
                     Term::error("Failed to find executable by given path. Please check if path set correctly.");
                 }
                 exit(0);
             }
 
-            if config.get_executable_path() == executable {
+            if config.executable == executable {
                 Term::warn("Attempt to set same path to executable.");
                 exit(0);
             }
 
-            config.set_executable_path(&executable);
+            config.executable = executable;
             Manager::write(config);
             Term::message("Config saved.");
         }
