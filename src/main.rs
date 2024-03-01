@@ -1,7 +1,5 @@
 use std::{
-    fs,
-    path::{Path, PathBuf},
-    process::exit,
+    fs, path::{Path, PathBuf}, process::exit
 };
 
 use args::app;
@@ -14,79 +12,132 @@ mod config;
 mod proc;
 mod term;
 
-fn main() {
+fn check_config() {
     if !Manager::exists() {
-        Manager::make_default();
+        Term::warn("Resup is not configured. Please run `resup setup` to configure the application.");
+        exit(1)
     }
+}
+
+fn main() {
     let args = app().get_matches();
     match args.subcommand() {
-        Some(("upscale", sub)) => {
-            let input = sub.get_one::<String>("input").unwrap().to_string();
-            let mut output: String = sub.get_one::<String>("output").unwrap().to_string();
-            let overwrite: bool = sub.get_flag("overwrite");
-            let quite: bool = sub.get_flag("quite");
-            if output.is_empty() {
-                let file_name = Path::new(&input)
-                    .file_stem()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string();
-                output = file_name + "-upscaled.png";
+        Some(("setup", _sub)) => {
+            let mut new_config = Config::default();
+            loop {
+                let exec_path = Term::ask("Specify the path to the executable file of 'realeasrgan-ncnn-vulkan'", "");
+                if !Path::new(&exec_path).exists() {
+                    Term::error("Executable file not found!")
+                } else {
+                    new_config.executable = exec_path;
+                    break;
+                }
             }
 
-            if Path::new(&output).exists() && !overwrite {
-                Term::error(
-                    format!(
-                        "File with name {} already exists. Try new name or remove this file.",
-                        &output
-                    )
-                    .as_str(),
-                );
-                exit(1);
+            loop {
+                let models_path = Term::ask("Specify the path to the directory with models", "");
+                if !Path::new(&models_path).exists() {
+                    Term::error("Directory with models not found!")
+                } else {
+                    new_config.models_path = models_path;
+                    break;
+                }
+            }
+
+            new_config.model = String::new();
+            if !Path::new(&Manager::get_config_dir()).exists() {
+                fs::create_dir(Manager::get_config_dir()).unwrap();
+            }
+            Manager::write(new_config);
+            Term::done("Configuration has been saved.");
+            Term::message("Before starting upscaling, please specify a model that you want to use with 'use' subcommand.");
+            exit(0)
+        },
+        Some(("upscale", sub)) => {
+            check_config();
+            let input_files = sub.get_many::<String>("input").unwrap_or_default().map(|v| v.as_str()).collect::<Vec<_>>();
+            if input_files.is_empty() {
+                Term::message("Nothing to upscale!");
+                exit(1)
+            }
+
+            let overwrite: bool = sub.get_flag("overwrite");
+            let mut output = sub.get_one::<String>("output").unwrap().clone();
+
+            if !output.is_empty() && input_files.len() != 1 {
+                Term::error("You cant specify output name for multiple files.");
+                exit(1)
             }
 
             let config = Manager::load();
             Term::message("Preparing to upscale...");
-            if !quite {
-                Term::display_data("Model", &config.model);
-                Term::display_data("Executable", &config.executable);
-                Term::display_data("Input file", &input);
-                Term::display_data("Output file", &output);
+            if config.model.is_empty() {
+                Term::error("Model is not specified!");
+                exit(1)
             }
+            Term::display_data("Using model", config.model.clone().as_str());
             Term::message("Starting...");
-            let upscale_result: Result<(), UpscaleError> =
-                run_upscale(config, &input, &output, quite);
-            match upscale_result {
-                Ok(_) => Term::done("Upscale completed!"),
-                Err(e) => match e {
-                    UpscaleError::ExecutableNotFound => {
-                        Term::error("Failed to run executable file because it's not found.");
-                        exit(1);
-                    }
-                    UpscaleError::ProcessInterrupted => {
-                        Term::error("Process interrupted.");
-                        exit(1);
-                    }
-                    UpscaleError::UnknownError => {
-                        Term::error("Upscale failed with unknown reason.");
-                        exit(1);
-                    }
-                    UpscaleError::ModelsDirectoryNotFound => {
-                        Term::error("Failed to find directory with models. Please check if path set correctly.",);
-                        exit(1)
-                    }
-                    UpscaleError::ModelParamNotFound => {
-                        Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
-                        exit(1)
-                    }
-                    UpscaleError::ModelBinNotFound => {
-                        Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
-                    }
-                },
+
+            for file in input_files {
+                if !Path::new(&file).exists() {
+                    Term::error(format!("Cannot continue because '{}' are not exists.", file).as_str());
+                    exit(1)
+                }
+
+                if output.is_empty() {
+                    let file_name = Path::new(file)
+                        .file_stem()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string();
+                    output = file_name.to_string() + "-upscaled.png";
+                    println!("{}",output);
+                }
+
+                if Path::new(&output).exists() && !overwrite {
+                    Term::error(format!("File with name '{}' already exists. Try new name or remove this file.", &output).as_str());
+                    exit(1);
+                }
+
+                Term::message(format!("Upscaling '{file}'...").as_str());
+                let upscale_result: Result<(), UpscaleError> =
+                run_upscale(config.clone(), file, &output);
+
+                match upscale_result {
+                    Ok(_) => Term::done("Upscale completed!"),
+                    Err(e) => match e {
+                        UpscaleError::ExecutableNotFound => {
+                            Term::error("Failed to run executable file because it's not found.");
+                            exit(1);
+                        }
+                        UpscaleError::ProcessInterrupted => {
+                            Term::error("Process interrupted.");
+                            exit(1);
+                        }
+                        UpscaleError::UnknownError => {
+                            Term::error("Upscale failed with unknown reason.");
+                            exit(1);
+                        }
+                        UpscaleError::ModelsDirectoryNotFound => {
+                            Term::error("Failed to find directory with models. Please check if path set correctly.",);
+                            exit(1)
+                        }
+                        UpscaleError::ModelParamNotFound => {
+                            Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
+                            exit(1)
+                        }
+                        UpscaleError::ModelBinNotFound => {
+                            Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
+                        }
+                    },
+                }
+                output.clear()
             }
+            Term::done("Upscale finished successfully.");
         }
         Some(("list", _sub)) => {
+            check_config();
             let config: Config = Manager::load();
             if !config.check_models_path_exists() {
                 Term::error("Failed to find model directory. Check if path set correctly.");
@@ -103,17 +154,15 @@ fn main() {
                     continue;
                 }
 
-                let param_path: String = models_path.clone() + "/" + filename + ".param";
-                let bin_path: String = models_path.clone() + "/" + filename + ".bin";
-                let param_found: bool = Path::new(&param_path).exists();
-                let bin_found: bool = Path::new(&bin_path).exists();
+                let param_path: PathBuf = Path::new(&models_path).join(filename.to_string() + ".param");
+                let bin_path: PathBuf = Path::new(&models_path).join(filename.to_string() + ".bin");
 
-                if param_found && bin_found {
+                if param_path.exists() && bin_path.exists() {
                     available_models.push(filename.to_string());
                 }
             }
 
-            Term::message("Available models:");
+            Term::title("Available models:");
             for i in available_models.iter() {
                 if *i == config.model {
                     Term::no_icon_message(format!("{} (current)", i).as_str());
@@ -122,18 +171,13 @@ fn main() {
                 }
             }
         }
-        Some(("model", sub)) => {
-            let model_name: String = sub.get_one::<String>("model").unwrap().to_string();
+        Some(("use", sub)) => {
+            check_config();
+            let model_name: &str = sub.get_one::<String>("model").unwrap().as_str();
             let mut config: Config = Manager::load();
             if model_name.is_empty() {
-                Term::display_data("Current model", &config.model);
-                if !config.check_model_param_exists() {
-                    Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
-                }
-                if !config.check_model_bin_exists() {
-                    Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
-                }
-                exit(0);
+                Term::warn("Model name is note specified. Use `list` subcommand to list all available models.");
+                exit(1)
             }
 
             if config.model == model_name {
@@ -141,56 +185,9 @@ fn main() {
                 exit(0);
             }
 
-            config.model = model_name;
+            config.model = model_name.to_string();
             Manager::write(config);
             Term::message("Config saved.");
-        }
-        Some(("models-dir", sub)) => {
-            let path: String = sub.get_one::<String>("path").unwrap().to_string();
-            let mut config: Config = Manager::load();
-            if path.is_empty() {
-                Term::display_data(
-                    "Current path to directory with models",
-                    &config.models_path,
-                );
-                if !config.check_models_path_exists() {
-                    Term::error(
-                        "Failed to find directory with models. Please check if path set correctly.",
-                    );
-                }
-                exit(0);
-            }
-
-            if config.models_path == path {
-                Term::warn("Attempt to set same path to models directory.");
-                exit(0);
-            }
-            config.models_path = path;
-            Manager::write(config);
-            Term::message("Config saved.");
-        }
-        Some(("executable", sub)) => {
-            let executable: String = sub.get_one::<String>("path").unwrap().to_string();
-            let mut config: Config = Manager::load();
-            if executable.is_empty() {
-                Term::display_data("Current path to executable", &config.executable);
-                if !config.check_executable_exists() {
-                    Term::error("Failed to find executable by given path. Please check if path set correctly.");
-                }
-                exit(0);
-            }
-
-            if config.executable == executable {
-                Term::warn("Attempt to set same path to executable.");
-                exit(0);
-            }
-
-            config.executable = executable;
-            Manager::write(config);
-            Term::message("Config saved.");
-        }
-        Some(("config", _sub)) => {
-            Term::display_data("Path to config", Manager::get_config_path().as_str());
         }
         _ => Term::error("Unknown command."),
     }

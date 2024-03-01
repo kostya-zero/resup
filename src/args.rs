@@ -7,18 +7,19 @@ pub fn app() -> Command {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommands([
+            Command::new("setup").about("Run the setup wizard."),
             Command::new("upscale")
                 .about("Upscale image resolution.")
                 .args([
                     Arg::new("input")
-                        .help("Input file")
+                        .help("Input files.")
                         .required(true)
-                        .num_args(1)
+                        .num_args(0..)
                         .default_value("")
                         .value_parser(value_parser!(String)),
                     Arg::new("output")
                         .help("Name of output file.")
-                        .required(false)
+                        .last(true)
                         .num_args(1)
                         .default_value("")
                         .value_parser(value_parser!(String)),
@@ -34,32 +35,12 @@ pub fn app() -> Command {
                         .action(ArgAction::SetTrue),
                 ]),
             Command::new("list").about("List available models."),
-            Command::new("executable")
-                .about("Set path to executable")
-                .arg(
-                    Arg::new("path")
-                        .help("Path to executable.")
-                        .required(false)
-                        .num_args(1)
-                        .default_value("")
-                        .value_parser(value_parser!(String)),
-                ),
-            Command::new("config").about("Get path to config file."),
-            Command::new("model")
-                .about("Set or get current model.")
+            
+            Command::new("use")
+                .about("Set model to use.")
                 .arg(
                     Arg::new("model")
                         .help("Model name to set.")
-                        .required(false)
-                        .num_args(1)
-                        .default_value("")
-                        .value_parser(value_parser!(String)),
-                ),
-            Command::new("models-dir")
-                .about("Set or get current models directory.")
-                .arg(
-                    Arg::new("path")
-                        .help("Path to directory with models.")
                         .required(false)
                         .num_args(1)
                         .default_value("")

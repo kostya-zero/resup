@@ -1,4 +1,4 @@
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use crate::config::Config;
 
@@ -15,7 +15,6 @@ pub fn run_upscale(
     config: Config,
     input: &str,
     output: &str,
-    quite: bool,
 ) -> Result<(), UpscaleError> {
     let mut proc: Command = Command::new(&config.executable);
     proc.args(vec![
@@ -32,15 +31,6 @@ pub fn run_upscale(
         "-n",
         &config.model,
     ]);
-    if !quite {
-        proc.stdout(Stdio::inherit());
-        proc.stdin(Stdio::inherit());
-        proc.stderr(Stdio::inherit());
-    } else {
-        proc.stdout(Stdio::piped());
-        proc.stdin(Stdio::piped());
-        proc.stderr(Stdio::piped());
-    }
     if !config.check_executable_exists() {
         return Err(UpscaleError::ExecutableNotFound);
     }

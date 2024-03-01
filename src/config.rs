@@ -2,7 +2,7 @@ use home::home_dir;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
     pub model: String,
     pub models_path: String,
@@ -46,18 +46,6 @@ impl Manager {
 
     pub fn get_config_path() -> String {
         home_dir().unwrap().join(".config").join("resup").join("config.toml").display().to_string()
-    }
-
-    pub fn make_default() {
-        let default_config: Config = Config::default();
-        let toml_config: String =
-            toml::to_string(&default_config).expect("Failed to format config.");
-        let resup_path = Self::get_config_dir();
-        if !Path::new(&resup_path).exists() {
-            fs::create_dir(&resup_path).expect("Failed to create directory.");
-        }
-
-        fs::write(Self::get_config_path(), toml_config).expect("Failed to write config data.");
     }
 
     pub fn exists() -> bool {
