@@ -14,7 +14,6 @@ pub fn app() -> Command {
                     Arg::new("input")
                         .help("Input files.")
                         .required(true)
-                        .num_args(0..)
                         .default_value("")
                         .value_parser(value_parser!(String)),
                     Arg::new("output")
@@ -35,16 +34,13 @@ pub fn app() -> Command {
                         .action(ArgAction::SetTrue),
                 ]),
             Command::new("list").about("List available models."),
-            
-            Command::new("use")
-                .about("Set model to use.")
-                .arg(
-                    Arg::new("model")
-                        .help("Model name to set.")
-                        .required(false)
-                        .num_args(1)
-                        .default_value("")
-                        .value_parser(value_parser!(String)),
-                ),
+            Command::new("use").about("Set model to use.").arg(
+                Arg::new("model")
+                    .help("Model name to set.")
+                    .required(false)
+                    .num_args(1)
+                    .default_value("")
+                    .value_parser(value_parser!(String)),
+            ),
         ])
 }

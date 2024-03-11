@@ -55,19 +55,14 @@ fn main() {
         },
         Some(("upscale", sub)) => {
             check_config();
-            let input_files = sub.get_many::<String>("input").unwrap_or_default().map(|v| v.as_str()).collect::<Vec<_>>();
-            if input_files.is_empty() {
+            let input_file = sub.get_one::<String>("input").unwrap();
+            if input_file.is_empty() {
                 Term::message("Nothing to upscale!");
                 exit(1)
             }
 
             let overwrite: bool = sub.get_flag("overwrite");
             let mut output = sub.get_one::<String>("output").unwrap().clone();
-
-            if !output.is_empty() && input_files.len() != 1 {
-                Term::error("You cant specify output name for multiple files.");
-                exit(1)
-            }
 
             let config = Manager::load();
             Term::message("Preparing to upscale...");
@@ -78,14 +73,13 @@ fn main() {
             Term::display_data("Using model", config.model.clone().as_str());
             Term::message("Starting...");
 
-            for file in input_files {
-                if !Path::new(&file).exists() {
-                    Term::error(format!("Cannot continue because '{}' are not exists.", file).as_str());
+                if !Path::new(&input_file).exists() {
+                    Term::error(format!("Cannot continue because '{input_file}' are not exists.").as_str());
                     exit(1)
                 }
 
                 if output.is_empty() {
-                    let file_name = Path::new(file)
+                    let file_name = Path::new(input_file)
                         .file_stem()
                         .unwrap()
                         .to_str()
@@ -100,9 +94,9 @@ fn main() {
                     exit(1);
                 }
 
-                Term::message(format!("Upscaling '{file}'...").as_str());
+                Term::message(format!("Upscaling '{input_file}'...").as_str());
                 let upscale_result: Result<(), UpscaleError> =
-                run_upscale(config.clone(), file, &output);
+                run_upscale(config.clone(), input_file, &output);
 
                 match upscale_result {
                     Ok(_) => Term::done("Upscale completed!"),
@@ -132,8 +126,6 @@ fn main() {
                         }
                     },
                 }
-                output.clear()
-            }
             Term::done("Upscale finished successfully.");
         }
         Some(("list", _sub)) => {
