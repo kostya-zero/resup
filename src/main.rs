@@ -1,5 +1,7 @@
 use std::{
-    fs, path::{Path, PathBuf}, process::exit
+    fs,
+    path::{Path, PathBuf},
+    process::exit,
 };
 
 use args::app;
@@ -14,7 +16,9 @@ mod term;
 
 fn check_config() {
     if !Manager::exists() {
-        Term::warn("Resup is not configured. Please run `resup setup` to configure the application.");
+        Term::warn(
+            "Resup is not configured. Please run `resup setup` to configure the application.",
+        );
         exit(1)
     }
 }
@@ -25,7 +29,10 @@ fn main() {
         Some(("setup", _sub)) => {
             let mut new_config = Config::default();
             loop {
-                let exec_path = Term::ask("Specify the path to the executable file of 'realeasrgan-ncnn-vulkan'", "");
+                let exec_path = Term::ask(
+                    "Specify the path to the executable file of 'realeasrgan-ncnn-vulkan'",
+                    "",
+                );
                 if !Path::new(&exec_path).exists() {
                     Term::error("Executable file not found!")
                 } else {
@@ -52,7 +59,7 @@ fn main() {
             Term::done("Configuration has been saved.");
             Term::message("Before starting upscaling, please specify a model that you want to use with 'use' subcommand.");
             exit(0)
-        },
+        }
         Some(("upscale", sub)) => {
             check_config();
             let input_file = sub.get_one::<String>("input").unwrap();
@@ -73,59 +80,69 @@ fn main() {
             Term::display_data("Using model", config.model.clone().as_str());
             Term::message("Starting...");
 
-                if !Path::new(&input_file).exists() {
-                    Term::error(format!("Cannot continue because '{input_file}' are not exists.").as_str());
-                    exit(1)
-                }
+            if !Path::new(&input_file).exists() {
+                Term::error(
+                    format!("Cannot continue because '{input_file}' are not exists.").as_str(),
+                );
+                exit(1)
+            }
 
-                if output.is_empty() {
-                    let file_name = Path::new(input_file)
-                        .file_stem()
-                        .unwrap()
-                        .to_str()
-                        .unwrap()
-                        .to_string();
-                    output = file_name.to_string() + "-upscaled.png";
-                    println!("{}",output);
-                }
+            if output.is_empty() {
+                let file_name = Path::new(input_file)
+                    .file_stem()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+                output = file_name.to_string() + "-upscaled.png";
+                println!("{}", output);
+            }
 
-                if Path::new(&output).exists() && !overwrite {
-                    Term::error(format!("File with name '{}' already exists. Try new name or remove this file.", &output).as_str());
-                    exit(1);
-                }
+            if Path::new(&output).exists() && !overwrite {
+                Term::error(
+                    format!(
+                        "File with name '{}' already exists. Try new name or remove this file.",
+                        &output
+                    )
+                    .as_str(),
+                );
+                exit(1);
+            }
 
-                Term::message(format!("Upscaling '{input_file}'...").as_str());
-                let upscale_result: Result<(), UpscaleError> =
-                run_upscale(config.clone(), input_file, &output);
+            let show_output = sub.get_flag("showoutput");
 
-                match upscale_result {
-                    Ok(_) => Term::done("Upscale completed!"),
-                    Err(e) => match e {
-                        UpscaleError::ExecutableNotFound => {
-                            Term::error("Failed to run executable file because it's not found.");
-                            exit(1);
-                        }
-                        UpscaleError::ProcessInterrupted => {
-                            Term::error("Process interrupted.");
-                            exit(1);
-                        }
-                        UpscaleError::UnknownError => {
-                            Term::error("Upscale failed with unknown reason.");
-                            exit(1);
-                        }
-                        UpscaleError::ModelsDirectoryNotFound => {
-                            Term::error("Failed to find directory with models. Please check if path set correctly.",);
-                            exit(1)
-                        }
-                        UpscaleError::ModelParamNotFound => {
-                            Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
-                            exit(1)
-                        }
-                        UpscaleError::ModelBinNotFound => {
-                            Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
-                        }
-                    },
-                }
+            Term::message(format!("Upscaling '{input_file}'...").as_str());
+            let upscale_result: Result<(), UpscaleError> =
+                run_upscale(config.clone(), input_file, &output, show_output);
+
+            match upscale_result {
+                Ok(_) => Term::done("Upscale completed!"),
+                Err(e) => match e {
+                    UpscaleError::ExecutableNotFound => {
+                        Term::error("Failed to run executable file because it's not found.");
+                        exit(1);
+                    }
+                    UpscaleError::ProcessInterrupted => {
+                        Term::error("Process interrupted.");
+                        exit(1);
+                    }
+                    UpscaleError::UnknownError => {
+                        Term::error("Upscale failed with unknown reason.");
+                        exit(1);
+                    }
+                    UpscaleError::ModelsDirectoryNotFound => {
+                        Term::error("Failed to find directory with models. Please check if path set correctly.",);
+                        exit(1)
+                    }
+                    UpscaleError::ModelParamNotFound => {
+                        Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
+                        exit(1)
+                    }
+                    UpscaleError::ModelBinNotFound => {
+                        Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
+                    }
+                },
+            }
             Term::done("Upscale finished successfully.");
         }
         Some(("list", _sub)) => {
@@ -146,7 +163,8 @@ fn main() {
                     continue;
                 }
 
-                let param_path: PathBuf = Path::new(&models_path).join(filename.to_string() + ".param");
+                let param_path: PathBuf =
+                    Path::new(&models_path).join(filename.to_string() + ".param");
                 let bin_path: PathBuf = Path::new(&models_path).join(filename.to_string() + ".bin");
 
                 if param_path.exists() && bin_path.exists() {

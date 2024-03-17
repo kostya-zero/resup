@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use crate::config::Config;
 
@@ -15,6 +15,7 @@ pub fn run_upscale(
     config: Config,
     input: &str,
     output: &str,
+    show_output: bool,
 ) -> Result<(), UpscaleError> {
     let mut proc: Command = Command::new(&config.executable);
     proc.args(vec![
@@ -42,6 +43,12 @@ pub fn run_upscale(
     }
     if !config.check_model_param_exists() {
         return Err(UpscaleError::ModelParamNotFound);
+    }
+
+    if show_output {
+        proc.stdin(Stdio::inherit());
+        proc.stdout(Stdio::inherit());
+        proc.stderr(Stdio::inherit());
     }
     let result = proc.output();
     match result {

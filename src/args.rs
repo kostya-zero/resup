@@ -27,10 +27,9 @@ pub fn app() -> Command {
                         .long("overwrite")
                         .short('o')
                         .action(ArgAction::SetTrue),
-                    Arg::new("quite")
-                        .help("Run upscale without configuration info and Real-ESRGAN output.")
-                        .short('q')
-                        .long("quite")
+                    Arg::new("showoutput")
+                        .help("Show output while upscaling.")
+                        .long("show-output")
                         .action(ArgAction::SetTrue),
                 ]),
             Command::new("list").about("List available models."),
