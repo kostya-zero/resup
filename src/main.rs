@@ -95,7 +95,6 @@ fn main() {
                     .unwrap()
                     .to_string();
                 output = file_name.to_string() + "-upscaled.png";
-                println!("{}", output);
             }
 
             if Path::new(&output).exists() && !overwrite {
