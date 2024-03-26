@@ -20,8 +20,8 @@ jobs:
     - name: Upload as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: enjo-linux64
-        path: target/release/enjo
+        name: resup-linux64
+        path: target/release/resup
   build-win:
     runs-on: windows-latest
     steps:    
@@ -38,6 +38,6 @@ jobs:
     - name: Upload as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: enjo-win64
-        path: target\release\enjo.exe
+        name: resup-win64
+        path: target\release\resup.exe
 
