@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "resup"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "clap",
  "home",

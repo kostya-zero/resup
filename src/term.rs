@@ -18,14 +18,11 @@ impl Term {
         println!("\x1b[1m 󰆼 {}:\x1b[0m {}", name, data);
     }
 
-    pub fn ask(msg: &str, default: &str) -> String {
-        print!(" 󰍡 {} \x1b[90m({})\x1b[0m: ", msg, default);
+    pub fn ask(msg: &str) -> String {
+        print!(" 󰍡 {}: ", msg);
         io::stdout().flush().unwrap();
         let mut input: String = String::new();
         io::stdin().read_line(&mut input).unwrap();
-        if input.is_empty() {
-            return default.to_string();
-        }
         input.strip_suffix("\r\n").unwrap().to_string()
     }
 

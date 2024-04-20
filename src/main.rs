@@ -1,11 +1,12 @@
 use std::{
-    fs,
+    env, fs,
     path::{Path, PathBuf},
     process::exit,
 };
 
 use args::app;
 use config::{Config, Manager};
+use home::home_dir;
 use proc::{run_upscale, UpscaleError};
 use term::Term;
 
@@ -28,30 +29,40 @@ fn main() {
     match args.subcommand() {
         Some(("setup", _sub)) => {
             let mut new_config = Config::default();
+            if env::consts::OS == "windows" {
+                Term::warn("Because you are on Windows, replace single backslash with double.");
+            }
             loop {
-                let exec_path = Term::ask(
+                let exec = Term::ask(
                     "Specify the path to the executable file of 'realeasrgan-ncnn-vulkan'",
-                    "",
                 );
-                if !Path::new(&exec_path).exists() {
+                let exec_path = Path::new(&exec);
+                if !exec_path.exists() {
                     Term::error("Executable file not found!")
+                } else if exec_path.is_dir() {
+                    Term::error("Found directory, not a file.");
                 } else {
-                    new_config.executable = exec_path;
+                    new_config.executable = exec;
                     break;
                 }
             }
 
             loop {
-                let models_path = Term::ask("Specify the path to the directory with models", "");
-                if !Path::new(&models_path).exists() {
+                let models = Term::ask("Specify the path to the directory with models");
+                let models_path = Path::new(&models);
+                if !models_path.exists() {
                     Term::error("Directory with models not found!")
+                } else if models_path.is_file() {
+                    Term::error("Found file, not a directory");
                 } else {
-                    new_config.models_path = models_path;
+                    new_config.models_path = models;
                     break;
                 }
             }
 
             new_config.model = String::new();
+            let home_path = home_dir().unwrap();
+            let _ = fs::create_dir(home_path.join(".config").to_str().unwrap());
             if !Path::new(&Manager::get_config_dir()).exists() {
                 fs::create_dir(Manager::get_config_dir()).unwrap();
             }
