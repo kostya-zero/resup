@@ -20,36 +20,29 @@ impl Default for Config {
 }
 
 impl Config {
-
-    pub fn check_model_param_exists(&self) -> bool {
-        Path::new(&self.models_path).join(self.model.clone() + ".param").exists()
+    pub fn check_model(&self) -> bool {
+        let model_path = Path::new(&self.models_path);
+        model_path.join(self.model.clone() + ".param").exists()
+            && model_path.join(self.model.clone() + ".bin").exists()
     }
 
-    pub fn check_model_bin_exists(&self) -> bool {
-        Path::new(&self.models_path).join(self.model.clone() + ".bin").exists()
-    }
-
-    pub fn check_models_path_exists(&self) -> bool {
-        Path::new(&self.models_path).exists()
-    }
-
-    pub fn check_executable_exists(&self) -> bool {
-        Path::new(&self.executable).exists()
-    }
-}
-
-pub struct Manager;
-impl Manager {
     pub fn get_config_dir() -> String {
-        home_dir().unwrap().join(".config").join("resup").display().to_string()
+        home_dir()
+            .unwrap()
+            .join(".config")
+            .join("resup")
+            .display()
+            .to_string()
     }
 
     pub fn get_config_path() -> String {
-        home_dir().unwrap().join(".config").join("resup").join("config.toml").display().to_string()
-    }
-
-    pub fn exists() -> bool {
-        Path::new(&Self::get_config_path()).exists()
+        home_dir()
+            .unwrap()
+            .join(".config")
+            .join("resup")
+            .join("config.toml")
+            .display()
+            .to_string()
     }
 
     pub fn load() -> Config {

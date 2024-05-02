@@ -5,7 +5,7 @@ use std::{
 };
 
 use args::app;
-use config::{Config, Manager};
+use config::Config;
 use home::home_dir;
 use proc::{run_upscale, UpscaleError};
 use term::Term;
@@ -14,9 +14,10 @@ mod args;
 mod config;
 mod proc;
 mod term;
+mod utils;
 
 fn check_config() {
-    if !Manager::exists() {
+    if !Path::new(&Config::get_config_path()).exists() {
         Term::warn(
             "Resup is not configured. Please run `resup setup` to configure the application.",
         );
@@ -33,9 +34,7 @@ fn main() {
                 Term::warn("Because you are on Windows, replace single backslash with double.");
             }
             loop {
-                let exec = Term::ask(
-                    "Specify the path to the executable file of 'realeasrgan-ncnn-vulkan'",
-                );
+                let exec = Term::ask("Specify the path to the executable file of Real-ESRGAN.");
                 let exec_path = Path::new(&exec);
                 if !exec_path.exists() {
                     Term::error("Executable file not found!")
@@ -63,10 +62,10 @@ fn main() {
             new_config.model = String::new();
             let home_path = home_dir().unwrap();
             let _ = fs::create_dir(home_path.join(".config").to_str().unwrap());
-            if !Path::new(&Manager::get_config_dir()).exists() {
-                fs::create_dir(Manager::get_config_dir()).unwrap();
+            if !Path::new(&Config::get_config_dir()).exists() {
+                fs::create_dir(Config::get_config_dir()).unwrap();
             }
-            Manager::write(new_config);
+            Config::write(new_config);
             Term::done("Configuration has been saved.");
             Term::message("Before starting upscaling, please specify a model that you want to use with 'use' subcommand.");
             exit(0)
@@ -82,14 +81,16 @@ fn main() {
             let overwrite: bool = sub.get_flag("overwrite");
             let mut output = sub.get_one::<String>("output").unwrap().clone();
 
-            let config = Manager::load();
-            Term::message("Preparing to upscale...");
+            let config = Config::load();
+            if !Path::new(&config.executable).exists() {
+                Term::error("Executable file for Real-ESRGAN is not found. Make sure you have specified valid path.");
+                exit(1);
+            }
+
             if config.model.is_empty() {
                 Term::error("Model is not specified!");
                 exit(1)
             }
-            Term::display_data("Using model", config.model.clone().as_str());
-            Term::message("Starting...");
 
             if !Path::new(&input_file).exists() {
                 Term::error(
@@ -121,11 +122,10 @@ fn main() {
 
             let show_output = sub.get_flag("showoutput");
 
+            Term::display_data("Using model", config.model.clone().as_str());
             Term::message(format!("Upscaling '{input_file}'...").as_str());
-            let upscale_result: Result<(), UpscaleError> =
-                run_upscale(config.clone(), input_file, &output, show_output);
 
-            match upscale_result {
+            match run_upscale(config.clone(), input_file, &output, show_output) {
                 Ok(_) => Term::done("Upscale completed!"),
                 Err(e) => match e {
                     UpscaleError::ExecutableNotFound => {
@@ -140,16 +140,8 @@ fn main() {
                         Term::error("Upscale failed with unknown reason.");
                         exit(1);
                     }
-                    UpscaleError::ModelsDirectoryNotFound => {
-                        Term::error("Failed to find directory with models. Please check if path set correctly.",);
-                        exit(1)
-                    }
-                    UpscaleError::ModelParamNotFound => {
-                        Term::error("Failed to find model's `.param` file. Check if `.param` file exists in directory with models.");
-                        exit(1)
-                    }
-                    UpscaleError::ModelBinNotFound => {
-                        Term::error("Failed to find model's `.bin` file. Check if `.bin` file exists in directory with models.");
+                    UpscaleError::ModelFilesNotFound => {
+                        Term::error("Failed to find `.bin` and `.params` files for model. Check if both files are exists in models directory.");
                     }
                 },
             }
@@ -157,8 +149,8 @@ fn main() {
         }
         Some(("list", _sub)) => {
             check_config();
-            let config: Config = Manager::load();
-            if !config.check_models_path_exists() {
+            let config: Config = Config::load();
+            if !Path::new(&config.models_path).exists() {
                 Term::error("Failed to find model directory. Check if path set correctly.");
                 exit(1);
             }
@@ -194,7 +186,7 @@ fn main() {
         Some(("use", sub)) => {
             check_config();
             let model_name: &str = sub.get_one::<String>("model").unwrap().as_str();
-            let mut config: Config = Manager::load();
+            let mut config: Config = Config::load();
             if model_name.is_empty() {
                 Term::warn("Model name is note specified. Use `list` subcommand to list all available models.");
                 exit(1)
@@ -206,7 +198,7 @@ fn main() {
             }
 
             config.model = model_name.to_string();
-            Manager::write(config);
+            Config::write(config);
             Term::message("Config saved.");
         }
         _ => Term::error("Unknown command."),
