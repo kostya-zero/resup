@@ -30,9 +30,6 @@ fn main() {
     match args.subcommand() {
         Some(("setup", _sub)) => {
             let mut new_config = Config::default();
-            if env::consts::OS == "windows" {
-                Term::warn("Because you are on Windows, replace single backslash with double.");
-            }
             loop {
                 let exec = Term::ask("Specify the path to the executable file of Real-ESRGAN.");
                 let exec_path = Path::new(&exec);
