@@ -1,4 +1,6 @@
+use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::config::Config;
 
@@ -13,9 +15,14 @@ pub fn run_upscale(
     config: Config,
     input: &str,
     output: &str,
-    show_output: bool,
 ) -> Result<(), UpscaleError> {
-    let mut proc: Command = Command::new(&config.executable);
+    if !config.check_model() {
+        return Err(UpscaleError::ModelFilesNotFound);
+    }
+    let mut proc = Command::new(config.executable);
+    proc.stdout(Stdio::piped());
+    proc.stdin(Stdio::piped());
+    proc.stderr(Stdio::piped());
     proc.args(vec![
         "-i",
         input,
@@ -30,18 +37,27 @@ pub fn run_upscale(
         "-n",
         &config.model,
     ]);
-    if !config.check_model() {
-        return Err(UpscaleError::ModelFilesNotFound);
-    }
 
-    if show_output {
-        proc.stdin(Stdio::inherit());
-        proc.stdout(Stdio::inherit());
-        proc.stderr(Stdio::inherit());
-    }
-    let result = proc.output();
-    match result {
-        Ok(_) => Ok(()),
+    match proc.spawn() {
+        Ok(status) => {
+            let pb = ProgressBar::new(100);
+            pb.set_style(ProgressStyle::with_template("[{elapsed_precise}] [{wide_bar:.white/gray}] {pos}%").unwrap().progress_chars("##-"));
+            let stdout = status.stderr.unwrap();
+            let reader = BufReader::new(stdout);
+            reader.lines().map_while(Result::ok).for_each(
+                |line| {
+                    if line.contains('%') {
+                        let split = line.split('%').map(|i| i.to_string()).collect::<Vec<String>>();
+                        let progress = split[0].clone();
+                        let position: f32 = progress.parse().unwrap();
+                        let integer_part: i16 = position.trunc() as i16;
+                        pb.set_position(integer_part as u64);
+                    }
+                }
+            );
+            pb.finish_and_clear();
+            Ok(())
+        },
         Err(e) => match e.kind() {
             std::io::ErrorKind::NotFound => Err(UpscaleError::ExecutableNotFound),
             std::io::ErrorKind::Interrupted => Err(UpscaleError::ProcessInterrupted),

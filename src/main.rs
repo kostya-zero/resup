@@ -122,7 +122,7 @@ fn main() {
             Term::display_data("Using model", config.model.clone().as_str());
             Term::message(format!("Upscaling '{input_file}'...").as_str());
 
-            match run_upscale(config.clone(), input_file, &output, show_output) {
+            match run_upscale(config.clone(), input_file, &output) {
                 Ok(_) => Term::done("Upscale completed!"),
                 Err(e) => match e {
                     UpscaleError::ExecutableNotFound => {

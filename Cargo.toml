@@ -12,6 +12,7 @@ edition = "2021"
 [dependencies]
 clap = "4.5.0"
 home = "0.5.9"
+indicatif = "0.17.8"
 serde = { version = "1.0.196", features = ["derive"] }
 toml = "0.8.10"
 
