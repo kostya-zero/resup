@@ -14,7 +14,6 @@ mod args;
 mod config;
 mod proc;
 mod term;
-mod utils;
 
 fn check_config() {
     if !Path::new(&Config::get_config_path()).exists() {
