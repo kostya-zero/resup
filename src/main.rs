@@ -166,6 +166,13 @@ fn main() {
                     Term::no_icon_message(i.name.as_str());
                 }
             }
+
+            if !container.bad_models.is_empty() {
+                Term::warn("Models that are set up incorrectly:");
+                for model in container.bad_models.iter() {
+                    Term::no_icon_message(model);
+                }
+            }
         }
         Some(("use", sub)) => {
             check_config();
