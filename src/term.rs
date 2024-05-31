@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use dialoguer::{theme::ColorfulTheme, Input};
 
 pub struct Term;
 impl Term {
@@ -19,11 +19,11 @@ impl Term {
     }
 
     pub fn ask(msg: &str) -> String {
-        print!(" 󰍡 {}: ", msg);
-        io::stdout().flush().unwrap();
-        let mut input: String = String::new();
-        io::stdin().read_line(&mut input).unwrap();
-        input.strip_suffix("\r\n").unwrap().to_string()
+        let response = Input::with_theme(&ColorfulTheme::default())
+            .with_prompt(msg)
+            .interact_text()
+            .unwrap();
+        response
     }
 
     pub fn error(msg: &str) {

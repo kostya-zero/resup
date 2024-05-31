@@ -1,5 +1,5 @@
 use std::{
-    env, fs,
+    fs,
     path::{Path, PathBuf},
     process::exit,
 };
@@ -116,8 +116,6 @@ fn main() {
                 );
                 exit(1);
             }
-
-            let show_output = sub.get_flag("showoutput");
 
             Term::display_data("Using model", config.model.clone().as_str());
             Term::message(format!("Upscaling '{input_file}'...").as_str());
