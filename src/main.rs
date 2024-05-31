@@ -1,17 +1,15 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    process::exit,
-};
+use std::{fs, path::Path, process::exit};
 
 use args::app;
 use config::Config;
 use home::home_dir;
+use models::ModelsContainer;
 use proc::{run_upscale, UpscaleError};
 use term::Term;
 
 mod args;
 mod config;
+mod models;
 mod proc;
 mod term;
 
@@ -116,7 +114,15 @@ fn main() {
                 exit(1);
             }
 
-            Term::display_data("Using model", config.model.clone().as_str());
+            let container = ModelsContainer::new(&config.models_path);
+            let current_model = config.model.clone();
+
+            if !container.models.iter().any(|m| m.name == current_model) {
+                Term::error(format!("Model {} is not found.", current_model).as_str());
+                exit(1)
+            }
+
+            Term::display_data("Using model", current_model.as_str());
             Term::message(format!("Upscaling '{input_file}'...").as_str());
 
             match run_upscale(config.clone(), input_file, &output) {
@@ -150,30 +156,14 @@ fn main() {
             }
 
             let models_path = config.models_path;
-            let mut available_models: Vec<String> = Vec::new();
-            for entry in fs::read_dir(models_path.clone()).unwrap() {
-                let entry: PathBuf = entry.unwrap().path();
-                let entry_path: &str = entry.to_str().unwrap();
-                let filename: &str = Path::new(entry_path).file_stem().unwrap().to_str().unwrap();
-                if available_models.contains(&filename.to_string()) {
-                    continue;
-                }
-
-                let param_path: PathBuf =
-                    Path::new(&models_path).join(filename.to_string() + ".param");
-                let bin_path: PathBuf = Path::new(&models_path).join(filename.to_string() + ".bin");
-
-                if param_path.exists() && bin_path.exists() {
-                    available_models.push(filename.to_string());
-                }
-            }
+            let container = ModelsContainer::new(models_path.as_str());
 
             Term::title("Available models:");
-            for i in available_models.iter() {
-                if *i == config.model {
-                    Term::no_icon_message(format!("{} (current)", i).as_str());
+            for i in container.models.iter() {
+                if i.name == config.model {
+                    Term::no_icon_message(format!("{} (current)", i.name).as_str());
                 } else {
-                    Term::no_icon_message(i);
+                    Term::no_icon_message(i.name.as_str());
                 }
             }
         }
