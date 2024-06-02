@@ -1,6 +1,6 @@
 use home::home_dir;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::Path};
+use std::fs;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
@@ -20,12 +20,6 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn check_model(&self) -> bool {
-        let model_path = Path::new(&self.models_path);
-        model_path.join(self.model.clone() + ".param").exists()
-            && model_path.join(self.model.clone() + ".bin").exists()
-    }
-
     pub fn get_config_dir() -> String {
         home_dir()
             .unwrap()

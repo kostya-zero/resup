@@ -114,7 +114,10 @@ fn main() {
                 exit(1);
             }
 
-            let container = ModelsContainer::new(&config.models_path);
+            let container = ModelsContainer::new(&config.models_path).unwrap_or_else(|err| {
+                eprintln!("Failed to fetch available models: {:?}", err);
+                std::process::exit(1);
+            });
             let current_model = config.model.clone();
 
             if !container.models.iter().any(|m| m.name == current_model) {
@@ -125,7 +128,7 @@ fn main() {
             Term::display_data("Using model", current_model.as_str());
             Term::message(format!("Upscaling '{input_file}'...").as_str());
 
-            match run_upscale(config.clone(), input_file, &output) {
+            match run_upscale(config.clone(), input_file, &output, true) {
                 Ok(_) => Term::done("Upscale completed!"),
                 Err(e) => match e {
                     UpscaleError::ExecutableNotFound => {
@@ -140,9 +143,6 @@ fn main() {
                         Term::error("Upscale failed with unknown reason.");
                         exit(1);
                     }
-                    UpscaleError::ModelFilesNotFound => {
-                        Term::error("Failed to find `.bin` and `.params` files for model. Check if both files are exists in models directory.");
-                    }
                 },
             }
             Term::done("Upscale finished successfully.");
@@ -155,8 +155,11 @@ fn main() {
                 exit(1);
             }
 
-            let models_path = config.models_path;
-            let container = ModelsContainer::new(models_path.as_str());
+            let models_path = &config.models_path;
+            let container = ModelsContainer::new(models_path).unwrap_or_else(|err| {
+                eprintln!("Failed to fetch available models: {:?}", err);
+                std::process::exit(1);
+            });
 
             Term::title("Available models:");
             for i in container.models.iter() {
