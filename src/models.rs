@@ -1,17 +1,11 @@
 use std::{
     fs, io,
-    path::{Path, PathBuf},
+    path::{Path},
 };
 
-pub struct Model {
-    pub name: String,
-    pub is_pth: bool,
-    pub bin_path: Option<PathBuf>,
-    pub param_path: Option<PathBuf>,
-}
 
 pub struct ModelsContainer {
-    pub models: Vec<Model>,
+    pub models: Vec<String>,
     pub bad_models: Vec<String>,
 }
 
@@ -20,7 +14,7 @@ impl ModelsContainer {
         let path_buf = Path::new(path);
         let files = fs::read_dir(path_buf)?;
 
-        let mut new_models: Vec<Model> = Vec::new();
+        let mut new_models: Vec<String> = Vec::new();
         let mut new_bad_models: Vec<String> = Vec::new();
 
         for entry in files {
@@ -32,16 +26,11 @@ impl ModelsContainer {
                 .to_string();
 
             if file.extension().and_then(|ext| ext.to_str()) == Some("pth") {
-                new_models.push(Model {
-                    name,
-                    is_pth: true,
-                    bin_path: None,
-                    param_path: None,
-                });
+                new_models.push(name);
                 continue;
             }
 
-            if new_models.iter().any(|m| m.name == name) {
+            if new_models.iter().any(|m| *m == name) {
                 continue;
             }
 
@@ -49,12 +38,7 @@ impl ModelsContainer {
             let param_path = file.with_extension("param");
 
             if bin_path.exists() && param_path.exists() {
-                new_models.push(Model {
-                    name,
-                    is_pth: false,
-                    bin_path: Some(bin_path),
-                    param_path: Some(param_path),
-                });
+                new_models.push(name);
             } else if !new_bad_models.contains(&name) {
                 new_bad_models.push(name);
             }

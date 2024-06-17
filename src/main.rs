@@ -115,7 +115,7 @@ fn main() {
         
             let current_model = config.model.clone();
         
-            if !container.models.iter().any(|m| m.name == current_model) {
+            if !container.models.iter().any(|m| *m == current_model) {
                 Term::error(&format!("Model {} is not found.", current_model));
                 exit(1);
             }
@@ -152,10 +152,10 @@ fn main() {
 
             Term::title("Available models:");
             for i in container.models.iter() {
-                if i.name == config.model {
-                    Term::no_icon_message(format!("{} (current)", i.name).as_str());
+                if *i == config.model {
+                    Term::no_icon_message(format!("{} (current)", i).as_str());
                 } else {
-                    Term::no_icon_message(i.name.as_str());
+                    Term::no_icon_message(i.as_str());
                 }
             }
 
