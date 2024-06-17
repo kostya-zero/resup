@@ -27,9 +27,10 @@ pub fn app() -> Command {
                         .long("overwrite")
                         .short('o')
                         .action(ArgAction::SetTrue),
-                    Arg::new("showoutput")
-                        .help("Show output while upscaling.")
-                        .long("show-output")
+                    Arg::new("verbose")
+                        .help("Show output without progress bar.")
+                        .long("verbose")
+                        .short('v')
                         .action(ArgAction::SetTrue),
                 ]),
             Command::new("list").about("List available models."),
