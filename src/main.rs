@@ -54,10 +54,9 @@ fn main() {
             new_config.model = String::new();
             let home_path = home_dir().unwrap();
             let _ = fs::create_dir(home_path.join(".config").to_str().unwrap());
-            if !Path::new(&Config::get_config_dir()).exists() {
-                if let Ok(_) = fs::create_dir(Config::get_config_dir()) {
-
-                }
+            if !Path::new(&Config::get_config_dir()).exists() && fs::create_dir(Config::get_config_dir()).is_err() {
+                Term::error("Unable to create configuration directory");
+                exit(1);
             }
             Config::write(new_config);
             Term::done("Configuration has been saved.");
