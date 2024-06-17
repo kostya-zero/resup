@@ -147,7 +147,7 @@ fn main() {
 
             let models_path = &config.models_path;
             let container = ModelsContainer::new(models_path).unwrap_or_else(|err| {
-                eprintln!("Failed to fetch available models: {:?}", err);
+                Term::error(&format!("Failed to fetch available models: {:?}", err));
                 std::process::exit(1);
             });
 
