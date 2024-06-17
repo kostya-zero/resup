@@ -13,16 +13,14 @@ mod models;
 mod proc;
 mod term;
 
-fn check_config() {
+
+fn main() {
     if !Path::new(&Config::get_config_path()).exists() {
         Term::warn(
             "Resup is not configured. Please run `resup setup` to configure the application.",
         );
         exit(1)
     }
-}
-
-fn main() {
     let args = app().get_matches();
     match args.subcommand() {
         Some(("setup", _sub)) => {
@@ -67,7 +65,6 @@ fn main() {
             exit(0)
         }
         Some(("upscale", sub)) => {
-            check_config();
 
             let input_file = match sub.get_one::<String>("input") {
                 Some(input) if !input.is_empty() => input.clone(),
@@ -142,7 +139,6 @@ fn main() {
             }
         }
         Some(("list", _sub)) => {
-            check_config();
             let config: Config = Config::load();
             if !Path::new(&config.models_path).exists() {
                 Term::error("Failed to find model directory. Check if path set correctly.");
@@ -172,7 +168,6 @@ fn main() {
             }
         }
         Some(("use", sub)) => {
-            check_config();
             let model_name: &str = sub.get_one::<String>("model").unwrap().as_str();
             let mut config: Config = Config::load();
             if model_name.is_empty() {
