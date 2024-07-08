@@ -1,7 +1,6 @@
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
-
 use crate::config::Config;
 
 pub enum UpscaleError {

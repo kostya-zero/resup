@@ -121,9 +121,10 @@ fn main() {
             }
 
             let verbose = sub.get_flag("verbose");
+            let file_name = Path::new(&input_file).file_stem().unwrap().to_str().unwrap();
         
             Term::display_data("Using model", &current_model);
-            Term::message(&format!("Upscaling '{input_file}'..."));
+            Term::message(&format!("Upscaling '{file_name}'..."));
         
             match run_upscale(config.clone(), &input_file, &output, verbose) {
                 Ok(_) => Term::done("Upscale completed!"),
