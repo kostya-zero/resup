@@ -4,7 +4,7 @@ use args::app;
 use config::Config;
 use home::home_dir;
 use models::ModelsContainer;
-use proc::{run_upscale, UpscaleError};
+use proc::run_upscale;
 use term::Term;
 
 mod args;
@@ -13,14 +13,7 @@ mod models;
 mod proc;
 mod term;
 
-
 fn main() {
-    if !Path::new(&Config::get_config_path()).exists() {
-        Term::warn(
-            "Resup is not configured. Please run `resup setup` to configure the application.",
-        );
-        exit(1)
-    }
     let args = app().get_matches();
     match args.subcommand() {
         Some(("setup", _sub)) => {
@@ -54,7 +47,9 @@ fn main() {
             new_config.model = String::new();
             let home_path = home_dir().unwrap();
             let _ = fs::create_dir(home_path.join(".config").to_str().unwrap());
-            if !Path::new(&Config::get_config_dir()).exists() && fs::create_dir(Config::get_config_dir()).is_err() {
+            if !Path::new(&Config::get_config_dir()).exists()
+                && fs::create_dir(Config::get_config_dir()).is_err()
+            {
                 Term::error("Unable to create configuration directory");
                 exit(1);
             }
@@ -64,7 +59,6 @@ fn main() {
             exit(0)
         }
         Some(("upscale", sub)) => {
-
             let input_file = match sub.get_one::<String>("input") {
                 Some(input) if !input.is_empty() => input.clone(),
                 _ => {
@@ -72,39 +66,52 @@ fn main() {
                     exit(1);
                 }
             };
-        
+
             let overwrite = sub.get_flag("overwrite");
-            let output = sub.get_one::<String>("output").unwrap_or(&String::new()).clone();
-        
+            let output = sub
+                .get_one::<String>("output")
+                .unwrap_or(&String::new())
+                .clone();
+
             let config = Config::load();
-        
+
             if !Path::new(&config.executable).exists() {
                 Term::error("Executable file for Real-ESRGAN is not found. Make sure you have specified a valid path.");
                 exit(1);
             }
-        
+
             if config.model.is_empty() {
                 Term::error("Model is not specified!");
                 exit(1);
             }
-        
+
             if !Path::new(&input_file).exists() {
-                Term::error(&format!("Cannot continue because '{input_file}' does not exist."));
+                Term::error(&format!(
+                    "Cannot continue because '{input_file}' does not exist."
+                ));
                 exit(1);
             }
-        
+
             let output = if output.is_empty() {
-                let file_stem = Path::new(&input_file).file_stem().unwrap().to_str().unwrap().to_string();
+                let file_stem = Path::new(&input_file)
+                    .file_stem()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
                 format!("{}-upscaled.png", file_stem)
             } else {
                 output
             };
-        
+
             if Path::new(&output).exists() && !overwrite {
-                Term::error(&format!("File with name '{}' already exists. Try a new name or remove this file.", &output));
+                Term::error(&format!(
+                    "File with name '{}' already exists. Try a new name or remove this file.",
+                    &output
+                ));
                 exit(1);
             }
-        
+
             let container = match ModelsContainer::new(&config.models_path) {
                 Ok(container) => container,
                 Err(err) => {
@@ -112,28 +119,28 @@ fn main() {
                     exit(1);
                 }
             };
-        
+
             let current_model = config.model.clone();
-        
-            if !container.models.iter().any(|m| *m == current_model) {
+
+            if !container.get_models().iter().any(|m| *m == current_model) {
                 Term::error(&format!("Model {} is not found.", current_model));
                 exit(1);
             }
 
             let verbose = sub.get_flag("verbose");
-            let file_name = Path::new(&input_file).file_stem().unwrap().to_str().unwrap();
-        
+            let file_name = Path::new(&input_file)
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap();
+
             Term::display_data("Using model", &current_model);
             Term::message(&format!("Upscaling '{file_name}'..."));
-        
+
             match run_upscale(config.clone(), &input_file, &output, verbose) {
                 Ok(_) => Term::done("Upscale completed!"),
                 Err(e) => {
-                    match e {
-                        UpscaleError::ExecutableNotFound => Term::error("Failed to run executable file because it's not found."),
-                        UpscaleError::ProcessInterrupted => Term::error("Process interrupted."),
-                        UpscaleError::UnknownError => Term::error("Upscale failed for an unknown reason."),
-                    }
+                    Term::error(e.to_string().as_str());
                     exit(1);
                 }
             }
@@ -152,7 +159,7 @@ fn main() {
             });
 
             Term::title("Available models:");
-            for i in container.models.iter() {
+            for i in container.get_models().iter() {
                 if *i == config.model {
                     Term::no_icon_message(format!("{} (current)", i).as_str());
                 } else {
@@ -160,9 +167,9 @@ fn main() {
                 }
             }
 
-            if !container.bad_models.is_empty() {
+            if !container.get_bad_models().is_empty() {
                 Term::warn("Models that are set up incorrectly:");
-                for model in container.bad_models.iter() {
+                for model in container.get_bad_models().iter() {
                     Term::no_icon_message(model);
                 }
             }

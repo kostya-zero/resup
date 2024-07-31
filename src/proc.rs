@@ -1,11 +1,18 @@
+use crate::config::Config;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
-use crate::config::Config;
+use thiserror::Error;
 
+#[derive(Debug, Error)]
 pub enum UpscaleError {
+    #[error("Failed to run executable file because it's not found.")]
     ExecutableNotFound,
+
+    #[error("Process interrupted.")]
     ProcessInterrupted,
+
+    #[error("Upscale failed for an unknown reason.")]
     UnknownError,
 }
 

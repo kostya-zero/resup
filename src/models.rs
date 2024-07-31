@@ -1,12 +1,8 @@
-use std::{
-    fs, io,
-    path::{Path},
-};
-
+use std::{fs, io, path::Path};
 
 pub struct ModelsContainer {
-    pub models: Vec<String>,
-    pub bad_models: Vec<String>,
+    models: Vec<String>,
+    bad_models: Vec<String>,
 }
 
 impl ModelsContainer {
@@ -48,5 +44,13 @@ impl ModelsContainer {
             models: new_models,
             bad_models: new_bad_models,
         })
+    }
+
+    pub fn get_models(&self) -> Vec<String> {
+        self.models.clone()
+    }
+
+    pub fn get_bad_models(&self) -> Vec<String> {
+        self.bad_models.clone()
     }
 }

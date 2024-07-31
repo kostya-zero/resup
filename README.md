@@ -1,6 +1,5 @@
 # Resup
 
-
 Resup is CLI front-end for `realesrgan-ncnn-vulkan` image upscaler written in Rust.
 It allows you quickly upscale your images directly in CLI.
 
@@ -20,7 +19,6 @@ cargo install resup
 
 Also, you can use precompiled binaries from releases.
 Go to releasse tab and download version that you want. Extract archive content and place executable in directory that exists in `PATH` variable.
-
 
 #### Build from source
 You can compile Resup manually. Clone this repository, install Rust toolchain and C/C++ compiler and run build with command below.
