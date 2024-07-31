@@ -134,7 +134,6 @@ fn main() {
                 .to_str()
                 .unwrap();
 
-            Term::display_data("Using model", &current_model);
             Term::message(&format!("Upscaling '{file_name}'..."));
 
             match run_upscale(config.clone(), &input_file, &output, verbose) {

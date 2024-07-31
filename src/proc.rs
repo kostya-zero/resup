@@ -28,7 +28,6 @@ pub fn run_upscale(
         proc.stdin(Stdio::piped());
         proc.stderr(Stdio::piped());
     }
-    println!("{}", config.model);
 
     proc.args(vec![
         "-i",
