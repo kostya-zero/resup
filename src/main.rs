@@ -4,13 +4,13 @@ use args::app;
 use config::Config;
 use home::home_dir;
 use models::ModelsContainer;
-use proc::run_upscale;
+use upscaler::Upscaler;
 use term::Term;
 
 mod args;
 mod config;
 mod models;
-mod proc;
+mod upscaler;
 mod term;
 
 fn main() {
@@ -105,10 +105,10 @@ fn main() {
             };
 
             if Path::new(&output).exists() && !overwrite {
-                Term::error(&format!(
+                Term::error(format!(
                     "File with name '{}' already exists. Try a new name or remove this file.",
                     &output
-                ));
+                ).as_str());
                 exit(1);
             }
 
@@ -120,9 +120,9 @@ fn main() {
                 }
             };
 
-            let current_model = config.model.clone();
+            let current_model = &config.model;
 
-            if !container.get_models().iter().any(|m| *m == current_model) {
+            if !container.get_models().iter().any(|m| *m == *current_model) {
                 Term::error(&format!("Model {} is not found.", current_model));
                 exit(1);
             }
@@ -136,7 +136,8 @@ fn main() {
 
             Term::message(&format!("Upscaling '{file_name}'..."));
 
-            match run_upscale(config.clone(), &input_file, &output, verbose) {
+            let upscaler = Upscaler::new(&config);
+            match upscaler.upscale(&input_file, &output, verbose) {
                 Ok(_) => Term::done("Upscale completed!"),
                 Err(e) => {
                     Term::error(e.to_string().as_str());
