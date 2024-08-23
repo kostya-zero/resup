@@ -14,10 +14,6 @@ impl Term {
         println!("   {}", msg);
     }
 
-    pub fn display_data(name: &str, data: &str) {
-        println!("\x1b[1m 󰆼 {}:\x1b[0m {}", name, data);
-    }
-
     pub fn ask(msg: &str) -> String {
         let response = Input::with_theme(&ColorfulTheme::default())
             .with_prompt(msg)
