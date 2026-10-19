@@ -1,3 +1,5 @@
+use std::process::ExitCode;
+
 use clap::Parser;
 
 use crate::{
@@ -9,13 +11,13 @@ mod cli;
 mod commands;
 mod config;
 mod models;
-mod term;
+mod terminal;
 mod upscaler;
 
-fn main() {
+fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    match cli.command {
+    let result = match cli.command {
         Command::Setup => setup(),
         Command::Upscale {
             input,
@@ -26,4 +28,11 @@ fn main() {
         Command::List => list(),
         Command::Use { model } => use_command(model),
     };
+
+    if let Err(e) = result {
+        print_error!("{e}");
+        return ExitCode::FAILURE;
+    }
+
+    ExitCode::SUCCESS
 }
