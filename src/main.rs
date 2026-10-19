@@ -1,17 +1,17 @@
 use std::{fs, path::Path, process::exit};
 
-use args::app;
+use cli::app;
 use config::Config;
 use home::home_dir;
 use models::ModelsContainer;
-use upscaler::Upscaler;
 use term::Term;
+use upscaler::Upscaler;
 
-mod args;
+mod cli;
 mod config;
 mod models;
-mod upscaler;
 mod term;
+mod upscaler;
 
 fn main() {
     let args = app().get_matches();
@@ -105,10 +105,13 @@ fn main() {
             };
 
             if Path::new(&output).exists() && !overwrite {
-                Term::error(format!(
-                    "File with name '{}' already exists. Try a new name or remove this file.",
-                    &output
-                ).as_str());
+                Term::error(
+                    format!(
+                        "File with name '{}' already exists. Try a new name or remove this file.",
+                        output
+                    )
+                    .as_str(),
+                );
                 exit(1);
             }
 
@@ -122,7 +125,7 @@ fn main() {
 
             let current_model = &config.model;
 
-            if !container.get_models().iter().any(|m| *m == *current_model) {
+            if !container.get_models().contains(current_model) {
                 Term::error(&format!("Model {} is not found.", current_model));
                 exit(1);
             }

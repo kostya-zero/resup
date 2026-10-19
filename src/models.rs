@@ -26,7 +26,7 @@ impl ModelsContainer {
                 continue;
             }
 
-            if new_models.iter().any(|m| *m == name) {
+            if new_models.contains(&name) {
                 continue;
             }
 
