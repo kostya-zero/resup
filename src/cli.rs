@@ -1,46 +1,38 @@
-use clap::{value_parser, Arg, ArgAction, Command};
+use clap::{Parser, Subcommand};
 
-pub fn app() -> Command {
-    Command::new("resup")
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommands([
-            Command::new("setup").about("Run the setup wizard."),
-            Command::new("upscale")
-                .about("Upscale image resolution.")
-                .args([
-                    Arg::new("input")
-                        .help("Input files.")
-                        .required(true)
-                        .default_value("")
-                        .value_parser(value_parser!(String)),
-                    Arg::new("output")
-                        .help("Name of output file.")
-                        .last(true)
-                        .num_args(1)
-                        .default_value("")
-                        .value_parser(value_parser!(String)),
-                    Arg::new("overwrite")
-                        .help("Overwrite file content if file with same name exists.")
-                        .long("overwrite")
-                        .short('o')
-                        .action(ArgAction::SetTrue),
-                    Arg::new("verbose")
-                        .help("Show output without progress bar.")
-                        .long("verbose")
-                        .short('v')
-                        .action(ArgAction::SetTrue),
-                ]),
-            Command::new("list").about("List available models."),
-            Command::new("use").about("Set model to use.").arg(
-                Arg::new("model")
-                    .help("Model name to set.")
-                    .required(false)
-                    .num_args(1)
-                    .default_value("")
-                    .value_parser(value_parser!(String)),
-            ),
-        ])
+#[derive(Parser)]
+#[command(arg_required_else_help = true, subcommand_required = true)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+#[derive(Subcommand)]
+pub enum Command {
+    /// Run the setup wizard.
+    Setup,
+
+    /// Upscale image resolution.
+    Upscale {
+        /// Input file name.
+        input: String,
+
+        /// Output file name.
+        output: String,
+
+        /// Overwrite the existing output file.
+        overwrite: bool,
+
+        /// Show output without progress bar.
+        verbose: bool,
+    },
+
+    /// List available models.
+    List,
+
+    /// Set model to use.
+    Use {
+        /// Model name to set.
+        model: String,
+    },
 }
