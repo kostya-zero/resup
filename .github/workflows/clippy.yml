@@ -1,18 +1,26 @@
-name: Run Clippy
+name: CI
 
-on: push
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  clippy:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Rust Toolchain
-        uses: actions-rs/toolchain@v1.0.6
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          components: clippy
+          components: clippy, rustfmt
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
       - name: Run Clippy
-        run: cargo clippy -- -Dwarnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
